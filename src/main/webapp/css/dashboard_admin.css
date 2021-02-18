@@ -1,0 +1,8 @@
+.dropdown-item:focus, .dropdown-item:hover {
+    color: #ffc107;
+    text-decoration: none;
+    background-color: #495057;
+}
+.width-edit-form{
+    max-width: 50vw;
+}

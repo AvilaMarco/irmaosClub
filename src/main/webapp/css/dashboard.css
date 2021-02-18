@@ -1,0 +1,133 @@
+/* :root{
+    --cliente:yellow;
+    --admin:yellow;
+    --instructor:yellow;
+}
+.color{
+    background-color: var(--cliente);
+} */
+*:focus {
+  outline: none !important;
+}
+
+/* SIDEBAR */
+.dropdown-menu {
+  /* background-image: linear-gradient(
+    to left,
+    rgb(230, 224, 224),
+    rgb(243, 243, 242)
+  ); */
+  background-color: rgb(253, 193, 7, 0.8);
+  border-radius: 5px;
+}
+.dropdown-item:hover{
+  background-color: #d7b853;
+}
+.graficos {
+  width: 100vw;
+  height: 80vh;
+}
+.img-logo {
+  width: 150px;
+  display: block;
+  margin: auto;
+}
+.user-logo {
+  color: #ffc107;
+  background: black;
+  border-radius: 55%;
+  line-height: 0.7;
+}
+.btn-sidebar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+}
+.btn-sidebar i {
+  display: flex;
+  justify-content: center;
+  width: 10%;
+}
+.list-group-item p {
+  margin-bottom: 0;
+}
+.btn-collapse {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 10vh;
+  padding: 5px;
+}
+
+#sidebar-wrapper {
+  min-height: 100vh;
+  margin-left: -12rem;
+  -webkit-transition: margin 0.25s ease-out;
+  -moz-transition: margin 0.25s ease-out;
+  -o-transition: margin 0.25s ease-out;
+  transition: margin 0.25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+  width: 15rem;
+}
+.list-group-item {
+  margin-right: 10px;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0;
+}
+/* SIDEBAR */
+/* MAIN CONTENT */
+.table td, .table th {
+  vertical-align: middle;
+}
+.container-scroll {
+  height: 90vh;
+  overflow: auto;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+}
+#wrapper {
+  overflow-x: hidden;
+}
+body {
+  background-image: linear-gradient(
+    to left,
+    rgb(230, 224, 224),
+    rgb(243, 243, 242)
+  );
+}
+.navbar {
+  background-image: linear-gradient(
+    to left,
+    rgb(230, 224, 224),
+    rgb(243, 243, 242)
+  );
+}
+/* MAIN CONTENT */
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+      margin-left: 0;
+    }
+  
+    #page-content-wrapper {
+      min-width: 0;
+      width: 100%;
+    }
+  
+    #wrapper.toggled #sidebar-wrapper {
+      margin-left: -12rem;
+    }
+  }

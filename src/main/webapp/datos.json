@@ -1,0 +1,16 @@
+{
+  "comprador": {
+    "id": 714772846,
+    "nickname": "TESTPZKYPVEP",
+    "password": "qatest4656",
+    "site_status": "active",
+    "email": "test_user_21471333@testuser.com"
+  },
+  "vendedor": {
+    "id": 714772071,
+    "nickname": "TESTLGSAX7MF",
+    "password": "qatest2149",
+    "site_status": "active",
+    "email": "test_user_17916682@testuser.com"
+  }
+}

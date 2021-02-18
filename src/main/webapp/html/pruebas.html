@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Start Page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    </head>
+    <body>
+        <section class="content">
+            <div id="cantidad_usuarios_activos"></div>
+            <!--cantidad_usuarios_actividad-->
+            <div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre Actividad</th>
+                            <th>Cantidad Usuarios Por Actividad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cantidad_usuarios_actividad">
+                    </tbody>
+                </table>
+            </div>
+            <!--cantidad usuarios por horarios-->
+            <div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre Actividad</th>
+                            <th>Hora</th>
+                            <th>Dias</th>
+                            <th>Cantidad Usuarios</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cantidad_usuarios_horarios">
+                    </tbody>
+                </table>
+            </div>
+            <!--usuarios pagos-->
+            <div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Apellidos</th>
+                            <th>Nombres</th>
+                            <th>Email</th>
+                            <th>Tiene Pago</th>
+                            <th>Fecha Pago</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios_pagos">
+                    </tbody>
+                </table>
+            </div>
+            <div id="lista_asistencia">
+                <button onclick="createClass()" class="btn btn-info m-2">Crear Clase</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Prensente</th>
+                            <th>Apellidos</th>
+                            <th>Nombres</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuarios_asistencia">
+                    </tbody>
+                </table>
+                <button onclick="tomarLista()" class="btn btn-success m-2">Enviar</button>
+            </div>
+            <div id="dinero_mes"></div>
+            <div id="cantidad_usuarios_nuevos_por_mes"></div>
+        </section>
+        <div id="texto"></div>
+        <script>
+
+            function getUser(id) {
+                fetch("getuser?id=" + id)
+                        .then(response => response.json())
+                        .then(json => mostrarUser(json));
+            }
+            function mostrarDatos(json) {
+                const div = document.getElementById("texto");
+                for (let i = 0; i < json.length; i++) {
+                    div.innerHTML += `
+                        <p>
+                            id: ${json[i].id_usuario} <br>
+                            comment: ${json[i].usuario} <br> 
+                            email: ${json[i].email} <br>
+                            fecha registro: ${json[i].fecha_registro} <br>
+                            rol: ${json[i].rol} <br>
+                        <p>`;
+                }
+            }
+            function mostrarUser(json) {
+                const div = document.getElementById("texto");
+                if (json.error == undefined) {
+                    div.innerHTML += `
+                    <p>
+                        id: ${json.id_usuario} <br>
+                        comment: ${json.usuario} <br> 
+                        email: ${json.email} <br>
+                        fecha registro: ${json.fecha_registro} <br>
+                        rol: ${json.rol} <br>
+                    <p>`;
+                } else {
+                    div.innerHTML += `
+                    <p>
+                        error: ${json.error} <br>
+                    <p>`;
+                }
+            }
+        </script>
+    </body>
+</html>
