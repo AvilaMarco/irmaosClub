@@ -91,7 +91,7 @@ public class CheckoutMercadoPago extends HttpServlet {
                 System.out.println("nueva preferencia");
                 //agregar los items a la preferecia
                 preference.setItems(items);
-                preference = completarPreference(preference, user, id_menbresia_titular);
+                preference = completarPreference(preference, user, id_menbresia_titular, precioTotal(items));
             } else {
                 System.out.println("nunca se ejecuta");
                 preference = (Preference) gson.fromJson(strPreference, Map.class);
@@ -173,7 +173,7 @@ public class CheckoutMercadoPago extends HttpServlet {
         return item;
     }
 
-    public Preference completarPreference(Preference preference, Usuario user, int id_menbresia) {
+    public Preference completarPreference(Preference preference, Usuario user, int id_menbresia, float precioTotal) {
         //pagador
         Payer payer = new Payer();
         payer.setName(user.getUsuario())
@@ -193,12 +193,20 @@ public class CheckoutMercadoPago extends HttpServlet {
         preference.setPayer(payer);
         // Back Urls
         BackUrls backUrls = new BackUrls(
-                "https://marcoavilaweb.web.app/?id=" + id_menbresia,
+                "https://marcoavilaweb.web.app/?id=" + id_menbresia+"&precio="+precioTotal,
                 "https://marcoavilaweb.web.app/",
                 "https://marcoavilaweb.web.app/");
         preference.setBackUrls(backUrls);
         // notificacion para pagar
         return preference;
+    }
+    
+    public float precioTotal(ArrayList<Item> items){
+        float precioTotal = 0;
+        for (Item item : items) {
+            precioTotal += item.getUnitPrice();
+        }
+        return precioTotal;
     }
 
     /* en proceso de creacion */

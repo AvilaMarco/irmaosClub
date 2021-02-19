@@ -1,7 +1,15 @@
 //al iniciar la pagina
-window.onload = () => {
-  setInfoUser();
+window.onload = async () => {
+  await setInfoUser();
+  if (!user.actividad) {
+    ActividadesHorarios();
+  }
 };
+//referencia HTML
+const btnFormRegistro = document.getElementById("btn-registro-familiar");
+
+//eventos
+btnFormRegistro.addEventListener("click", formRegistroFamiliar);
 
 async function ActividadesHorarios() {
   const data = await fetchData("actividadeshorarios");
@@ -15,6 +23,12 @@ async function ActividadesHorarios() {
   const $btnAnotarse = document.getElementById("btn-anotarse");
   $btnAnotarse.addEventListener("click", registroUsuarioActividad);
 }
+
+function formRegistroFamiliar() {
+  $informacion.innerHTML = crearFormularioRegistro(null, null, "default");
+}
+
+function registroFamiliar() {}
 
 async function registroUsuarioActividad() {
   const $inputaData = document.querySelectorAll(
