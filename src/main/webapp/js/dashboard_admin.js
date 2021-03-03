@@ -16,6 +16,10 @@ document.getElementById("accion-edit").addEventListener("click", editarUsuario);
 document
   .getElementById("accion-delete")
   .addEventListener("click", eliminarUsuario);
+// document.getElementById("accion-delete").addEventListener("click", eliminarUsuario);
+document
+  .getElementById("accion-reset-password")
+  .addEventListener("click", () => resetPassword(usuarioAModificar.id));
 
 function crearFomulario() {
   clearInformacion();
@@ -24,7 +28,25 @@ function crearFomulario() {
   $btn.addEventListener("click", crearUsuario);
 }
 
-function haddlerListaUsuarios(event) {
+async function pagar() {
+  const actividades = actividadesMarcadas();
+  const formulario = new FormData();
+  formulario.append("actividades", JSON.stringify(actividades.actividades));
+  formulario.append(
+    "actividadesRegistro",
+    JSON.stringify(actividades.actividadesRegistro)
+  );
+  formulario.append("id_usuario", usuarioAModificar.id);
+  const config = {
+    method: "POST",
+    body: formulario,
+    header: { "Content-Type": "application/x-www-form-urlencoded" },
+  };
+  const data = await fetchData("registropago", config);
+  console.log(data);
+}
+
+async function haddlerListaUsuarios(event) {
   const element = event.target;
   const modal = document.getElementById("modalAdmin");
   if (element.classList.contains("edit")) {
@@ -32,7 +54,7 @@ function haddlerListaUsuarios(event) {
     const btnEdit = document.getElementById("accion-edit");
     btnEdit.classList.remove("d-none");
     modal.firstElementChild.classList.add("width-edit-form");
-    usuarioAModificar = usuariosData.filter((e) => e.id == element.id)[0];
+    usuarioAModificar = usuariosData.find((e) => e.id == element.id);
     modal.querySelector(".modal-title").innerHTML = "Editar Usuario";
     modal.querySelector(".modal-body").innerHTML = crearFormularioRegistro(
       null,
@@ -45,7 +67,7 @@ function haddlerListaUsuarios(event) {
     clearModal();
     const btnDelete = document.getElementById("accion-delete");
     btnDelete.classList.remove("d-none");
-    usuarioAModificar = usuariosData.filter((e) => e.id == element.id)[0];
+    usuarioAModificar = usuariosData.find((e) => e.id == element.id);
     modal.querySelector(".modal-title").innerHTML = "Banear Usuario";
     modal.querySelector(".modal-body").innerHTML = `
     <div>
@@ -57,6 +79,54 @@ function haddlerListaUsuarios(event) {
     // mostrar modal
     $("#modalAdmin").modal();
     // btnDelete.addEventListener("click", () => eliminarUsuario(usuario.id))
+  } else if (element.classList.contains("pagar")) {
+    clearModal();
+    usuarioAModificar = usuariosData.find((e) => e.id == element.id);
+    const tablasActividades = await tablasPago(usuarioAModificar);
+    const divBotones = document.createElement("DIV");
+    let contenidoBotonesHTML = "";
+    //botones
+    contenidoBotonesHTML += `
+    <button id="marcar-actividades" class="btn btn-info">
+      Marcar Todas las Actividades
+    </button>
+    `;
+    contenidoBotonesHTML += `
+    <button class="btn btn-info" data-toggle="modal" data-target="#modal" id="pagar">
+      Pagar
+    </button>
+    `;
+    divBotones.innerHTML = contenidoBotonesHTML;
+    modal.querySelector(".modal-title").innerHTML = "Registro Pago";
+    modal.querySelector(".modal-body").appendChild(tablasActividades);
+    modal.querySelector(".modal-body").appendChild(divBotones);
+
+    selectByRow();
+    //agregar eventos
+    const btnMarcarActividades = document.getElementById("marcar-actividades");
+    const btnDatosPago = document.getElementById("pagar");
+    btnMarcarActividades.addEventListener("click", marcarActividades);
+    btnDatosPago.addEventListener("click", pagar);
+
+    // mostrar modal
+    $("#modalAdmin").modal();
+  } else if (element.classList.contains("reset-password")) {
+    clearModal();
+    const btnReset = document.getElementById("accion-reset-password");
+    btnReset.classList.remove("d-none");
+    usuarioAModificar = usuariosData.find((e) => e.id == element.id);
+    modal.querySelector(".modal-title").innerHTML = "Reset Password";
+    modal.querySelector(".modal-body").innerHTML = `
+    <div>
+      Seguro que quieres resetear la contraseña del usuario 
+      <span class="border-bottom border-danger">${usuarioAModificar.nombres} ${usuarioAModificar.apellidos}</span> 
+      que tiene el correo <span class="border-bottom border-danger">${usuarioAModificar.email}</span>
+      <br>
+      La nueva contraseña sera: 1234
+    </div>
+    `;
+    // mostrar modal
+    $("#modalAdmin").modal();
   }
 }
 
@@ -96,7 +166,12 @@ async function listaUsuarios() {
   const json = await fetchData("usuarios");
   usuariosData = json.usuarios;
   clearInformacion();
-  $informacion.innerHTML = createTableHTML(usuariosData, ["editar", "banear"]);
+  $informacion.innerHTML = createTableHTML(usuariosData, [
+    "editar",
+    "banear",
+    "pagar",
+    "reset-password",
+  ]);
   const $btnTablaUsuarios = document.getElementById("listaUsuarios");
   $btnTablaUsuarios.addEventListener("click", haddlerListaUsuarios);
 }
@@ -134,10 +209,12 @@ function clearModal() {
   const modal = document.getElementById("modalAdmin");
   const btnEdit = document.getElementById("accion-edit");
   const btnDelete = document.getElementById("accion-delete");
+  const btnReset = document.getElementById("accion-reset-password");
   modal.firstElementChild.classList.remove("width-edit-form");
   modal.querySelector(".modal-title").innerHTML = "";
   modal.querySelector(".modal-body").innerHTML = "";
   // limpiar butones
   btnEdit.classList.add("d-none");
   btnDelete.classList.add("d-none");
+  btnReset.classList.add("d-none");
 }

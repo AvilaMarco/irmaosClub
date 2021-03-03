@@ -13,8 +13,8 @@ public class TablaClases {
     private String crearclase = "insert into clases(id_actividad, id_horario) value (?, ?)";
     //agregar luego: and abs(hour(now()) - hora) between 0 and 1 and abs(minute(now()) - minute(hora)) between 0 and 15
     private String gethorario = "select id_horario from horarios natural join dias_horarios where id_actividad = ? and dia = ?";
-    private String alumnosclase = "SELECT id_usuario, apellidos, nombres FROM actividades_menbresias NATURAL JOIN (menbresias NATURAL JOIN usuarios) WHERE id_actividad = ? AND id_horario = ? and id_rol= 1 AND baneado = 0;";
-    private String idultimaclase = "SELECT id_clase, id_horario FROM clases WHERE id_actividad = ? AND finalizada = 0";
+    private String alumnosclase = "SELECT id_usuario, apellidos, nombres FROM actividades_menbresias NATURAL JOIN (menbresias NATURAL JOIN usuarios) WHERE id_actividad = ? AND id_horario = ? and id_rol= 1 AND pago = 1;";
+    private String idultimaclase = "SELECT id_clase, id_horario, dayname(fecha) as dia FROM clases WHERE id_actividad = ? AND finalizada = 0";
     private String datosultimaclase = "SELECT id_usuario, apellidos, nombres FROM clases_usuarios natural join usuarios WHERE id_clase = ? AND baneado = 0";
     private String finalizarclase = "update clases set finalizada = 1 where id_clase = ?";
 
@@ -38,6 +38,7 @@ public class TablaClases {
             PreparedStatement consulta2 = connection.prepareStatement(datosultimaclase);
             int idUltimaclase = idUltimaClase.getInt("id_clase");
             int idHorario = idUltimaClase.getInt("id_horario");
+            String dia = idUltimaClase.getString("dia");
             consulta2.setInt(1, idUltimaclase);
             ResultSet data = consulta2.executeQuery();
             respuesta = new LinkedHashMap<>();
@@ -52,6 +53,7 @@ public class TablaClases {
             respuesta.put("id_clase", idUltimaclase);
             respuesta.put("presentes", presentes);
             respuesta.put("id_horario", idHorario);
+            respuesta.put("dia", dia);
         }
         return respuesta;
     }

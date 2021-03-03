@@ -5,20 +5,35 @@ function crearFormularioRegistro(crear, editar, registro) {
       <div class="form-row">
         <div class="form-group col">
           <label> Usuario </label>
-          <input type="text" class="form-control" name="usuario" placeholder="Usuario" 
+          <input 
+            type="text" 
+            class="form-control" 
+            name="usuario" 
+            placeholder="Usuario" 
             value="${editar?.usuario ?? ""}"
+            required
           >
         </div>
         <div class="form-group col">
           <label> Nombres </label>
-          <input type="text" class="form-control" name="nombres" placeholder="Nombres" 
+          <input 
+            type="text" 
+            class="form-control" 
+            name="nombres" 
+            placeholder="Nombres" 
             value="${editar?.nombres ?? ""}"
+            required
           >
         </div>
         <div class="form-group col">
           <label> Apellidos </label>
-          <input type="text" class="form-control" name="apellidos" placeholder="Apellidos" 
+          <input 
+            type="text" 
+            class="form-control" 
+            name="apellidos" 
+            placeholder="Apellidos" 
             value="${editar?.apellidos ?? ""}"
+            required
           >
         </div>
       </div>
@@ -26,15 +41,25 @@ function crearFormularioRegistro(crear, editar, registro) {
       <div class="form-row">
         <div class="form-group col">
           <label> Correo </label>
-          <input type="email" class="form-control" placeholder="Correo" name="email"
+          <input 
+            type="email" 
+            class="form-control" 
+            placeholder="Correo" 
+            name="email"
             value="${editar?.email ?? ""}"
+            required
           >
         </div>
         ${
           crear || registro
             ? `<div class="form-group col">
                 <label> Password </label>
-                <input type="password" class="form-control" name="password">
+                <input 
+                  type="password" 
+                  class="form-control" 
+                  name="password"
+                  required
+                >
               </div>`
             : ""
         }
@@ -43,16 +68,26 @@ function crearFormularioRegistro(crear, editar, registro) {
       <div class="form-row">
         <div class="form-group col">
           <label> Celular </label>
-          <input type="number" min="0" class="form-control" placeholder="Celular" name="celular"
+          <input 
+            type="number" 
+            min="0" 
+            class="form-control" 
+            placeholder="Celular" 
+            name="celular"
             value="${editar?.celular ?? ""}"
+            required
           >
         </div>
         <div class="form-group col">
           <label> Celular Emergencia </label>
-          <input type="number" min="0" class="form-control" placeholder="Celular Emergencia"
-            name="celular_emergencia" value="${
-              editar?.celular_emergencia ?? ""
-            }"
+          <input 
+            type="number" 
+            min="0" 
+            class="form-control" 
+            placeholder="Celular Emergencia"
+            name="celular_emergencia" 
+            value="${editar?.celular_emergencia ?? ""}"
+            required
           >
         </div>
       </div>
@@ -62,7 +97,13 @@ function crearFormularioRegistro(crear, editar, registro) {
           crear || registro
             ? `<div class="form-group col">
                 <label> Fecha de Nacimiento </label>
-                <input type="date" class="form-control" placeholder="Fecha de Nacimiento" name="fecha_nacimiento">
+                <input 
+                  type="date" 
+                  class="form-control" 
+                  placeholder="Fecha de Nacimiento" 
+                  name="fecha_nacimiento"
+                  required
+                >
               </div>`
             : ""
         }
@@ -70,7 +111,15 @@ function crearFormularioRegistro(crear, editar, registro) {
           crear || registro
             ? `<div class="form-group col">
                 <label> DNI </label>
-                <input type="number" min="0" max="99999999" class="form-control" placeholder="DNI" name="dni">
+                <input 
+                  type="number" 
+                  min="0" 
+                  max="99999999" 
+                  class="form-control" 
+                  placeholder="DNI" 
+                  name="dni"
+                  required
+                >
               </div>`
             : ""
         }
@@ -98,8 +147,13 @@ function crearFormularioRegistro(crear, editar, registro) {
       <div class="form-row">
         <div class="form-group col">
           <label> Direccion </label>
-          <input type="text" class="form-control" placeholder="calle numero de casa" name="direccion"
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="calle numero de casa" 
+            name="direccion"
             value="${editar?.direccion ?? ""}"
+            required
           >
         </div>
         ${
@@ -134,9 +188,11 @@ function crearFormularioRegistro(crear, editar, registro) {
       <div class="form-row">
         <div class="form-group col">
           <label> Observacion  </label>
-          <textarea class="form-control" placeholder="a tener en cuenta..." name="observacion">
-            ${editar?.observacion ?? ""}
-          </textarea>
+          <textarea 
+            class="form-control" 
+            placeholder="a tener en cuenta..." 
+            name="observacion"
+          >${editar?.observacion ?? ""}</textarea>
         </div>
       </div>
       ${

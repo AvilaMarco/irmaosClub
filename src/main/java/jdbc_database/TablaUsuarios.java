@@ -53,26 +53,90 @@ public class TablaUsuarios {
     private final String crearmenbresia = "INSERT INTO menbresias (id_usuario) value (?)";
     private final String get_menbresia = "SELECT id_menbresia FROM menbresias WHERE id_usuario = ?";
     private final String get_idtitular = "SELECT id_titular FROM usuarios WHERE id_usuario = ?";
-    private final String actividades_menbresia = "SELECT nombre, nickname, precio, grupo_descuento FROM actividades_menbresias NATURAL JOIN actividades WHERE id_menbresia = ? ORDER BY nickname;";
+//    private final String actividades_menbresia = "SELECT id_actividad, nombre, nickname, precio, grupo_descuento FROM actividades_menbresias NATURAL JOIN actividades WHERE id_menbresia = ? ORDER BY nickname;";
+    private final String listaidfamiliares = "select id_usuario from usuarios where id_titular = ?";
+    private final String tarjetausuario = "SELECT id_usuario, nombres, apellidos, usuario, concat(apellidos, \" \", nombres) nombre, email, floor( DATEDIFF(NOW(), fecha_nacimiento) / 365) as edad FROM usuarios WHERE id_usuario = ?";
+    private final String tarjetausuarioactividades = "SELECT fecha_limite, nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias FROM actividades_menbresias natural join actividades NATURAL JOIN horarios NATURAL JOIN dias_horarios where id_menbresia = ? group by id_actividad;";
+    private final String usuarioPorNombre = "select * from usuarios where usuario = ?;";
+    private final String usuarioPorEmailODNI = "select * from usuarios where dni = ? or email = ?;";
+    private final String updatePassword = "UPDATE `usuarios` SET password = ? WHERE id_usuario = ?;";
 
     public TablaUsuarios() {
         connection = new Mysql().getConexion();
     }
 
-    public ArrayList<Map<String, Object>> actividadesPorMenbresia(int id_menbresia) throws SQLException {
-        PreparedStatement hojaVirtual = connection.prepareStatement(actividades_menbresia);
-        hojaVirtual.setInt(1, id_menbresia);
+    public ArrayList<Integer> getIdFamiliares(int id_usuario) throws SQLException {
+        ArrayList<Integer> idFamiliares = new ArrayList<>();
+        PreparedStatement hojaVirtual = connection.prepareStatement(listaidfamiliares);
+        hojaVirtual.setInt(1, id_usuario);
         ResultSet data = hojaVirtual.executeQuery();
-        ArrayList<Map<String, Object>> actividades = new ArrayList<>();
         while (data.next()) {
+            idFamiliares.add(data.getInt(campoId));
+        }
+        return idFamiliares;
+    }
+
+    public void resetearContraseña(String pass, int id_usuario) throws SQLException{
+        PreparedStatement ps = connection.prepareStatement(updatePassword);
+        System.out.println(pass);
+        System.out.println(id_usuario);
+        ps.setString(1, pass);
+        ps.setInt(2, id_usuario);
+        ps.executeUpdate();
+    }
+    
+    public Map<String, Object> tarjetaUsuario(int id_usuario) throws SQLException {
+        Map<String, Object> usuario = new HashMap<>();
+        PreparedStatement hojaVirtual = connection.prepareStatement(tarjetausuario);
+        hojaVirtual.setInt(1, id_usuario);
+        ResultSet data = hojaVirtual.executeQuery();
+        if (data.next()) {
+            usuario.put("id", data.getInt("id_usuario"));
+            usuario.put("usuario", data.getString("usuario"));
+            usuario.put("nombres", data.getString("nombres"));
+            usuario.put("apellidos", data.getString("apellidos"));
+            usuario.put("email", data.getString("email"));
+            usuario.put("edad", data.getInt("edad"));
+        }
+        int menbresia = getMenbresia(id_usuario);
+        if (menbresia != 0) {
+            usuario.put("actividades", tarjetaActividades(menbresia));
+        }
+        return usuario;
+    }
+
+    public ArrayList<Map<String, Object>> tarjetaActividades(int menbresia) throws SQLException {
+        PreparedStatement ps = connection.prepareStatement(tarjetausuarioactividades);
+        ps.setInt(1, menbresia);
+        ResultSet rs = ps.executeQuery();
+        ArrayList<Map<String, Object>> actividades = new ArrayList<>();
+        while (rs.next()) {
             Map<String, Object> actividad = new HashMap<>();
-            actividad.put("nombre", data.getString("nombre"));
-            actividad.put("nickname", data.getString("nickname"));
-            actividad.put("precio", data.getInt("precio"));
-            actividad.put("grupo_descuento", data.getString("grupo_descuento"));
+            actividad.put("nombre", rs.getString("nombre"));
+            actividad.put("hora", rs.getString("hora"));
+            actividad.put("dias", rs.getString("dias"));
+            actividad.put("fecha_limite", rs.getString("fecha_limite"));
             actividades.add(actividad);
         }
         return actividades;
+    }
+
+    public boolean usuarioExiste(Map<String, String[]> data) throws SQLException {
+        String usuario = data.get("usuario")[0];
+        PreparedStatement ps = connection.prepareStatement(usuarioPorNombre);
+        ps.setString(1, usuario);
+        ResultSet rs = ps.executeQuery();
+        return rs.next();
+    }
+
+    public boolean emailODniExiste(Map<String, String[]> data) throws SQLException {
+        String email = data.get("email")[0];
+        int dni = Integer.parseInt(data.get("dni")[0]);
+        PreparedStatement ps = connection.prepareStatement(usuarioPorEmailODNI);
+        ps.setInt(1, dni);
+        ps.setString(2, email);
+        ResultSet rs = ps.executeQuery();
+        return rs.next();
     }
 
     public int getMenbresia(int id_usuario) throws SQLException {
@@ -125,7 +189,6 @@ public class TablaUsuarios {
     public void createUser(Map<String, String[]> data) throws SQLException {
         Statement hojaVirtual = connection.createStatement();
         String consultasql = consultaCreate(data);
-        System.out.println(consultasql);
         hojaVirtual.executeUpdate(consultasql);
     }
 
@@ -155,9 +218,11 @@ public class TablaUsuarios {
         StringBuffer valores = new StringBuffer();
         claves.append("(");
         valores.append("(");
+        System.out.println("valores");
         for (int i = 0; i < campos.length; i++) {
             String campo = campos[i];
             Object valor = tryParse(data.get(campos[i])[0]);
+            System.out.println(valor);
             if (i == campos.length - 1) {
                 claves.append(campo + ")");
                 valores.append(valor + ")");

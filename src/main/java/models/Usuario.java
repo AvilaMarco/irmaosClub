@@ -120,6 +120,7 @@ public class Usuario {
         result.put("certificado_salud", certificadoSalud);
         result.put("observacion", observacion);
         result.put("fecha_registro", fecha_registro);
+        result.put("fecha_nacimiento", nacimiento);
         result.put("activo", activo);
         return result;
     }

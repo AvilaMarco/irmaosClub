@@ -3,6 +3,7 @@ package controller;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
@@ -26,13 +27,17 @@ public class UserCreate extends HttpServlet {
         Map<String, String[]> data = request.getParameterMap();
         TablaUsuarios consultas = new TablaUsuarios();
         try {
-            consultas.createUser(data);
-            respuesta.put("mensaje", "usuario creado");
-            System.out.println("creado");
-        } catch (Exception e) {
+            if(consultas.usuarioExiste(data)){
+                respuesta.put("mensaje", "El nombre de usuario ya existe");
+            }else if(consultas.emailODniExiste(data)){
+                respuesta.put("mensaje", "El DNI o el Email ya existen");
+            }else{
+                consultas.createUser(data);
+                respuesta.put("mensaje", "usuario creado");
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         }
-        System.out.println("creado");
         out.print(gson.toJson(respuesta));
     }
 }

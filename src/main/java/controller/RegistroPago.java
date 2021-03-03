@@ -10,6 +10,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -21,48 +22,48 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jdbc_database.TablaPagos;
+import jdbc_database.TablaUsuarios;
 
 @WebServlet(name = "RegistroPago", urlPatterns = {"/registropago"})
 @MultipartConfig
 public class RegistroPago extends HttpServlet {
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        int idMenbresia = Integer.parseInt(request.getParameter("id"));
-        int precio = Integer.parseInt(request.getParameter("precio"));
-        TablaPagos consultas = new TablaPagos();
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        //JSON
+        Gson gson = new Gson();
+        //datos del front
+        String strActividades = request.getParameter("actividades");
+        String strActividadesRegistro = request.getParameter("actividadesRegistro");
+        int id_usuario = Integer.parseInt(request.getParameter("id_usuario"));
+        //tablas
+        TablaPagos consultasPagos = new TablaPagos();
+        TablaUsuarios consultasUsuarios = new TablaUsuarios();
+        int id_menbresia_titular;
+        ArrayList<Map<String, Object>> actividades = gson.fromJson(strActividades, ArrayList.class);
+        ArrayList<Map<String, Object>> actividadesRegistro = gson.fromJson(strActividadesRegistro, ArrayList.class);
+        Map<String, Object> respuesta = new HashMap();
+        response.setContentType("application/json");
+        PrintWriter out = response.getWriter();
         try {
-            consultas.Pagar(idMenbresia, precio);
+            id_menbresia_titular = consultasUsuarios.getMenbresia(id_usuario);
+            for (Map<String, Object> actividad : actividades) {
+                int precio = (int) (double) actividad.get("unitPrice");
+                String nombreActividad = (String) actividad.get("title");
+                int id_menbresia = Integer.parseInt((String) actividad.get("id"));
+                consultasPagos.Pagar(id_menbresia_titular, id_menbresia, precio, nombreActividad);
+            }
+            for (Map<String, Object> actividadeRegistro : actividadesRegistro) {
+                int precio = (int) (double) actividadeRegistro.get("unitPrice");
+                String nombreActividad = (String) actividadeRegistro.get("title");
+                int id_menbresia = Integer.parseInt((String) actividadeRegistro.get("id"));
+                consultasPagos.PagarRegistro(id_menbresia_titular, id_menbresia, precio, nombreActividad);
+            }
+            respuesta.put("pago", "el pago se realizo correctamente");
         } catch (SQLException ex) {
             ex.printStackTrace();
             Logger.getLogger(RegistroPago.class.getName()).log(Level.SEVERE, null, ex);
         }
-        response.sendRedirect("/");
-    }
-
-    public static String peticionHttpGet(String urlParaVisitar) throws MalformedURLException, ProtocolException, IOException {
-        // Esto es lo que vamos a devolver
-        StringBuilder resultado = new StringBuilder();
-        // Crear un objeto de tipo URL
-        URL url = new URL(urlParaVisitar);
-
-        // Abrir la conexión e indicar que será de tipo GET
-        HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
-        conexion.setRequestMethod("GET");
-//        conexion.setRequestProperty("Authorization", "Bearer TEST-5002283706407276-021223-00f2b94570b01f18fdc542a7a8419258-714772071");
-//        conexion.setRequestProperty("Content-Type", "application/json");
-//        conexion.addRequestProperty("Content-Type", "application/json");
-       
-        // Búferes para leer
-        BufferedReader rd = new BufferedReader(new InputStreamReader(conexion.getInputStream()));
-        String linea;
-        // Mientras el BufferedReader se pueda leer, agregar contenido a resultado
-        while ((linea = rd.readLine()) != null) {
-            resultado.append(linea);
-        }
-        // Cerrar el BufferedReader
-        rd.close();
-        // Regresar resultado, pero como cadena, no como StringBuilder
-        return resultado.toString();
+        out.print(gson.toJson(respuesta));
     }
 }

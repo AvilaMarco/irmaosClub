@@ -34,7 +34,9 @@ public class LoginUser extends HttpServlet {
         response.setContentType("application/json");
         try {
             usuario = consultas.loginUser(email, password);
-            infoActividad = consultas.actividadUsuario(usuario.getId_usuario());
+            if(usuario != null){
+                infoActividad = consultas.actividadUsuario(usuario.getId_usuario());
+            }
         } catch (SQLException error) {
             error.printStackTrace();
         }

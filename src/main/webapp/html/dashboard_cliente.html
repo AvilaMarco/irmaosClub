@@ -43,12 +43,13 @@
         </div>
         <div class="dropdown-divider border-dark"></div>
         <div class="list-group list-group-flush w-100">
-          <a
-            href="#"
+          <button
+            id="data-user"
             class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-address-card nav-icon"></i>
-            <p>Membresia</p></a
           >
+            <i class="fas fa-address-card nav-icon"></i>
+            <p>Membresia</p>
+          </button>
           <!--  -->
           <div data-toggle="collapse" data-target="#btn-clientes">
             <button
@@ -62,7 +63,7 @@
             <button class="dropdown-item" id="btn-registro-familiar">
               Registro Familiar
             </button>
-            <button class="dropdown-item" id="btnUsuarios">
+            <button class="dropdown-item" id="btn-actividades-familiares">
               Actividades Familiar
             </button>
           </div>
@@ -73,12 +74,13 @@
             ><i class="fas fa-address-card nav-icon"></i>
             <p>Actividades</p></a
           >
-          <a
-            href="#"
+          <button
+            id="btn-pago"
             class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-dollar-sign nav-icon"></i>
-            <p>Pago</p></a
           >
+            <i class="fas fa-address-card nav-icon"></i>
+            <p>Pago</p>
+          </button>
           <a
             href="#"
             class="list-group-item list-group-item-action bg-warning btn-sidebar"
@@ -123,6 +125,34 @@
         <!-- main -->
         <div class="container-fluid container-scroll">
           <div id="informacion"></div>
+          <!-- MODAL -->
+          <div class="modal" id="modal">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <!-- Modal Header -->
+                <div class="modal-header">
+                  <h4 class="modal-title">Datos para Pagar</h4>
+                  <button type="button" class="close" data-dismiss="modal">
+                    &times;
+                  </button>
+                </div>
+
+                <!-- Modal body -->
+                <div class="modal-body" id="modal-body"></div>
+
+                <!-- Modal footer -->
+                <!-- <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-danger"
+                    data-dismiss="modal"
+                  >
+                    Close
+                  </button>
+                </div> -->
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <!-- /#page-content-wrapper -->
@@ -146,9 +176,12 @@
       integrity="sha512-d9xgZrVZpmmQlfonhQUvTR7lMPtO7NkZMkA0ABN3PHCbKA5nqylQ/yWlFAyY6hYgdF1Qh6nYiuADWwKB4C2WSw=="
       crossorigin="anonymous"
     ></script>
+    <!-- sweetalert -->
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
     <script src="../js/admin_chart.js"></script>
     <script src="../js/dashboard.js"></script>
-    <script src="../js/crearFormRegistro.js"></script>
+    <script src="../js/templates/crearFormRegistro.js"></script>
+    <script src="../js/templates/crearTarjetaUser.js"></script>
     <script src="../js/dashboard_cliente.js"></script>
   </body>
 </html>
