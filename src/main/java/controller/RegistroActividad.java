@@ -48,9 +48,13 @@ public class RegistroActividad extends HttpServlet {
             }
             if (!actividades.isEmpty()) {
                 consultasActividades.anotarUsuarioActividades(id_menbresia, actividades);
-                respuesta.put("mensaje", "registro de actividades correcto");
+                respuesta.put("icon", "success");
+                respuesta.put("title", "Felicidades");
+                respuesta.put("text", "Registro de actividad correcto");                
             } else {
-                respuesta.put("error", "hubo un error");
+                respuesta.put("icon", "error");
+                respuesta.put("title", "Oops...");
+                respuesta.put("text", "Hubo un error");
             }
         } catch (SQLException ex) {
             Logger.getLogger(RegistroActividad.class.getName()).log(Level.SEVERE, null, ex);

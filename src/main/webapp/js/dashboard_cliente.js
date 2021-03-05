@@ -38,6 +38,12 @@ function mostrarMenbresia() {
 
 async function ActividadesHorarios(usuario) {
   const data = await fetchData("actividadeshorarios");
+  const actividades = data.filter(
+    (a) =>
+      !user.actividades.some(
+        (au) => a.hora == au.hora && a["nombre actividad"] == au.nombre
+      )
+  );
   clearInformacion();
   const divTabla = document.createElement("DIV");
   const divDataUser = document.createElement("DIV");
@@ -48,7 +54,7 @@ async function ActividadesHorarios(usuario) {
   $informacion.appendChild(divTabla);
   divDataUser.innerHTML = dataInscripcionUsuario(usuario);
   //filtro de actividades hechas
-  divScroll.innerHTML = createTableHTML(data, ["actividad deseada"]);
+  divScroll.innerHTML = createTableHTML(actividades, ["actividad deseada"]);
   crearBotonRegistro(divTabla, usuario);
   selectByRow();
 }
@@ -155,7 +161,7 @@ async function registroUsuarioActividad(usuario) {
     header: { "Content-Type": "application/x-www-form-urlencoded" },
   };
   const res = await fetchData("registroactividad", config);
-  console.log(res);
+  SwalAlert(res).then(() => setInfoUser());
   clearInformacion();
   // const strActividades = actividades.reduce(
   //   (acc, a) => acc + crearTarjetaActividad(a),

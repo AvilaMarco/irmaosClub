@@ -27,13 +27,19 @@ public class UserCreate extends HttpServlet {
         Map<String, String[]> data = request.getParameterMap();
         TablaUsuarios consultas = new TablaUsuarios();
         try {
-            if(consultas.usuarioExiste(data)){
-                respuesta.put("mensaje", "El nombre de usuario ya existe");
-            }else if(consultas.emailODniExiste(data)){
-                respuesta.put("mensaje", "El DNI o el Email ya existen");
-            }else{
+            if (consultas.usuarioExiste(data)) {
+                respuesta.put("icon", "error");
+                respuesta.put("title", "Oops...");
+                respuesta.put("text", "El nombre de usuario ya existe");
+            } else if (consultas.emailODniExiste(data)) {
+                respuesta.put("icon", "error");
+                respuesta.put("title", "Oops...");
+                respuesta.put("text", "El DNI o el Email ya existen");
+            } else {
                 consultas.createUser(data);
-                respuesta.put("mensaje", "usuario creado");
+                respuesta.put("icon", "success");
+                respuesta.put("title", "Felicidades");
+                respuesta.put("text", "Usuario creado Correctamente");
             }
         } catch (SQLException e) {
             e.printStackTrace();

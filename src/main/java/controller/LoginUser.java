@@ -34,27 +34,33 @@ public class LoginUser extends HttpServlet {
         response.setContentType("application/json");
         try {
             usuario = consultas.loginUser(email, password);
-            if(usuario != null){
+            if (usuario != null) {
                 infoActividad = consultas.actividadUsuario(usuario.getId_usuario());
             }
         } catch (SQLException error) {
             error.printStackTrace();
         }
         if (usuario == null) {
-            respuesta.put("error", "datos erroneos o el usuario no existe");
+            respuesta.put("icon", "error");
+            respuesta.put("title", "Oops...");
+            respuesta.put("text", "datos erroneos o el usuario no existe");
             out.print(gson.toJson(respuesta));
         } else {
             session = request.getSession();
             session.setAttribute("UserData", usuario);
-            if (usuario.getRol() == 1) {
-                session.setAttribute("ActividadData", infoActividad);
-                session.setMaxInactiveInterval(600);
-                response.sendRedirect("html/dashboard_cliente.html");
-            } else if(usuario.getRol() == 2){
-                session.setAttribute("ActividadData", infoActividad);
-                response.sendRedirect("html/dashboard_instructor.html");
-            }else{
-                response.sendRedirect("html/dashboard_admin.html");
+            switch (usuario.getRol()) {
+                case 1:
+                    session.setAttribute("ActividadData", infoActividad);
+                    session.setMaxInactiveInterval(600);
+                    response.sendRedirect("html/dashboard_cliente.html");
+                    break;
+                case 2:
+                    session.setAttribute("ActividadData", infoActividad);
+                    response.sendRedirect("html/dashboard_instructor.html");
+                    break;
+                default:
+                    response.sendRedirect("html/dashboard_admin.html");
+                    break;
             }
         }
     }

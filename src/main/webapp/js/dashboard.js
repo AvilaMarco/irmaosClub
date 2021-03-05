@@ -5,7 +5,7 @@ let user = {};
 /* Fetch Data */
 function fetchData(url, config) {
   return fetch(`../${url}`, config ? config : { method: "GET" })
-    .then((data) => data.json())
+    .then((data) => (data.redirected ? location.assign(data.url) : data.json()))
     .then((json) => json)
     .catch((err) => console.log(err));
 }
@@ -22,11 +22,23 @@ async function resetPassword(id, password = "1234") {
   const data = await fetchData("resetpassword", config);
 }
 
+function SwalAlert(alert) {
+  return Swal.fire({
+    icon: alert.icon,
+    title: alert.title,
+    text: alert.text,
+  });
+}
+
 async function crearUsuario(e) {
   e.preventDefault();
   let inputs = Array.from(document.querySelectorAll("input[required]"));
   if (inputs.some((e) => e.value == "")) {
-    alert("Complete todos los campos");
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Complete todos los campos",
+    });
     return;
   }
   const frm = document.getElementById("formulario-general");
@@ -44,26 +56,12 @@ async function crearUsuario(e) {
     header: { "Content-Type": "application/x-www-form-urlencoded" },
   };
   const data = await fetchData("createuser", config);
-  console.log(data);
-  //refactor a futuro
   if (page === pageAdmin) {
-    swal({
-      title: "Usuario Creado",
-      text: "El usuario se creo correctamente",
-      icon: "success",
-    });
+    SwalAlert(data);
   } else if (page === pageClient) {
-    swal({
-      title: "Usuario Creado",
-      text: "El usuario de su Familiar se creo correctamente",
-      icon: "success",
-    }).then(() => actividadesFamiliares());
+    SwalAlert(data).then(() => actividadesFamiliares());
   } else {
-    swal({
-      title: "Usuario Creado",
-      text: "El usuario se creo correctamente",
-      icon: "success",
-    }).then(() => location.assign("login.html"));
+    SwalAlert(data).then(() => location.assign("login.html"));
   }
 }
 

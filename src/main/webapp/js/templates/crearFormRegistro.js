@@ -1,4 +1,4 @@
-function crearFormularioRegistro(crear, editar, registro) {
+function crearFormularioRegistro(crear, editar, registro, backLogin) {
   return `
     <form class="edit-form" id="formulario-general">
   
@@ -195,11 +195,20 @@ function crearFormularioRegistro(crear, editar, registro) {
           >${editar?.observacion ?? ""}</textarea>
         </div>
       </div>
+      <div>
       ${
         crear || registro
-          ? `<button class="btn btn-outline-secondary" id="sendForm">Enviar</button>`
+          ? `<button class="btn btn-black" id="sendForm">Registro</button>`
           : ""
-      } 
+      }
+      ${
+        backLogin
+          ? `<a class="btn btn-secondary" href="login.html" role="button">
+            Iniciar Sesion
+          </a>`
+          : ""
+      }
+      </div>
     </form>
     `;
 }
