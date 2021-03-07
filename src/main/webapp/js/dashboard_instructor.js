@@ -53,11 +53,14 @@ function _btnCrearClase() {
 async function tomarLista() {
   const presentes = Array.from(
     document.querySelectorAll("input[name*=presente]:checked")
-  ).map((e) => e.value);
+  );
+  const presentesID = presentes.map((e) => JSON.parse(e.value).id);
 
   const formulario = new FormData();
   formulario.append("id_clase", infoClase.id_clase);
-  presentes.forEach((presente) => formulario.append("presentes[]", presente));
+  presentesID.forEach((presenteID) =>
+    formulario.append("presentes[]", presenteID)
+  );
   const opcionesFetch = {
     method: "POST",
     body: formulario,

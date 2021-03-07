@@ -29,8 +29,11 @@ public class TablaPagos {
 //    private final String id_usuario = "select id_usuario from menbresias where id_menbresia = ?";
     //consultas
     //pagos
-    private final String actividadessinpagos = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? order by nickname";
-    private final String actividadesconpagos = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? order by nickname";
+    private final String act_registro = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 0 order by nickname";
+    private final String act_procesando_sin_pago = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 1 order by nickname";
+    private final String act_procesando_con_pago = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and pago_listo = 1 and datediff(fecha_limite, now()) between 0 and 7 order by nickname";
+    private final String act_con_vencimiento = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) between 0 and 7 and pago_listo = 0 order by nickname";
+    private final String act_sin_vencimiento = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) > 7 and pago_listo = 0 order by nickname";
 //    private String pagodeudca = "INSERT INTO `pagos`(`id_menbresia`, `precio`, `fecha_pago`, `fecha_limite`, `item_actividad`) VALUES (?, ?, ?, ?, ?)";
     //pagos 2
     //actividades 1
@@ -43,31 +46,69 @@ public class TablaPagos {
     private final String registroprimerpago = "INSERT INTO `pagos`(`id_menbresia`, `precio`, `item_actividad`, `fecha_limite`) VALUE (?, ?, ?, date_add(now(), interval 1 month));";
     private final String actividadSinPagoPorNombre = "select id_actividad from actividades_menbresias natural join actividades where id_menbresia = ? and nombre = ?;";
     private final String actividadSinPagoPorNickname = "select id_actividad from actividades_menbresias natural join actividades where id_menbresia = ? and nickname = ?;";
-
+    //pagos final
+    private final String estaPago = "select pago from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
+    private final String actividad_con_pago = "select id_actividad, date_add(fecha_limite, interval 1 month) as fecha from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
+    private final String actividad_sin_pago = "select id_actividad, date_add(now(), interval 1 month) as fecha from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
+    private final String update_fecha_limite = "update actividades_menbresias set pago = 1, fecha_limite = date(?) where id_actividad = ? and id_menbresia = ?;";
+    private final String registrar_pago = "INSERT INTO `pagos`(`id_menbresia`, `precio`, `fecha_limite`, `item_actividad`) VALUE (?, ?, date(?), ?);";
+    //Dashboard
+    private final String dinero_por_mes = "select fecha_pago, month(fecha_pago) as mes, year(fecha_pago) as year,  SUM(precio) as dinero_toltal from pagos group by MONTH(fecha_pago) order by fecha_pago desc limit 12;";
     public TablaPagos() {
         connection = new Mysql().getConexion();
     }
 
+    public ArrayList<Map<String, Object>> dineroPorMes() throws SQLException{
+        Statement st = connection.createStatement();
+        ResultSet rs = st.executeQuery(dinero_por_mes);
+        ArrayList<Map<String, Object>> mensualidad = new ArrayList<>();
+        while(rs.next()){
+            Map<String, Object> dineroMes = new HashMap<>();
+            dineroMes.put("dinero_total", rs.getInt("dinero_toltal"));
+            dineroMes.put("month", rs.getInt("mes"));
+            dineroMes.put("year", rs.getInt("year"));
+            mensualidad.add(dineroMes);
+        }
+        return mensualidad;
+    }
+    
     public void Pagar(int id_menbresia_titular, int id_menbresia, int precio, String nombreActividad) throws SQLException {
+        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
+        String fecha_limite = "";
+        int id_actividad = 0;
+        ResultSet rs;
+        PreparedStatement ps;
         if (nombreActividad.contains("+")) {
             String[] items = nombreActividad.split(" +");
-            String fecha_limite = "";
-            PreparedStatement ps;
             for (String actividad : items) {
                 if (!actividad.equals("+")) {
-                    //paso 1
-                    ps = connection.prepareStatement(actividadPorNickname);
+                    consultas.updatePagoListo(true, id_menbresia, actividad);
+                    //paso final 0 - obtener datos
+                    ps = connection.prepareStatement(estaPago);
                     ps.setInt(1, id_menbresia);
                     ps.setString(2, actividad);
-                    ResultSet rs = ps.executeQuery();
-                    int id_actividad = 0;
+                    ps.setString(3, actividad);
+                    rs = ps.executeQuery();
                     if (rs.next()) {
-                        id_actividad = rs.getInt("id_actividad");
-                        fecha_limite = rs.getString("fecha");
+                        Boolean estaPago = rs.getBoolean("pago");
+                        ps.close();
+                        if (estaPago) {
+                            ps = connection.prepareStatement(actividad_con_pago);
+                        } else {
+                            ps = connection.prepareStatement(actividad_sin_pago);
+                        }
+                        ps.setInt(1, id_menbresia);
+                        ps.setString(2, actividad);
+                        ps.setString(3, actividad);
+                        rs = ps.executeQuery();
+                        if (rs.next()) {
+                            fecha_limite = rs.getString("fecha");
+                            id_actividad = rs.getInt("id_actividad");
+                        }
                     }
                     ps.close();
-                    //paso 2
-                    ps = connection.prepareStatement(actualizarFechaLimite);
+                    //paso final 1 - actualizar fecha
+                    ps = connection.prepareStatement(update_fecha_limite);
                     ps.setString(1, fecha_limite);
                     ps.setInt(2, id_actividad);
                     ps.setInt(3, id_menbresia);
@@ -75,92 +116,212 @@ public class TablaPagos {
                     ps.close();
                 }
             }
-            //paso 3
-            ps = connection.prepareStatement(registropago);
-            ps.setInt(1, id_menbresia_titular);
-            ps.setInt(2, precio);
-            ps.setString(3, fecha_limite);
-            ps.setString(4, nombreActividad);
         } else {
-            //paso 1
-            PreparedStatement ps = connection.prepareStatement(actividadPorNombre);
+            consultas.updatePagoListo(true, id_menbresia, nombreActividad);
+            //paso final 0 - obtener datos
+            ps = connection.prepareStatement(estaPago);
             ps.setInt(1, id_menbresia);
             ps.setString(2, nombreActividad);
-            ResultSet rs = ps.executeQuery();
-            int id_actividad = 0;
-            String fecha_limite = "";
+            ps.setString(3, nombreActividad);
+            rs = ps.executeQuery();
             if (rs.next()) {
-                id_actividad = rs.getInt("id_actividad");
-                fecha_limite = rs.getString("fecha");
+                Boolean estaPago = rs.getBoolean("pago");
+                ps.close();
+                if (estaPago) {
+                    ps = connection.prepareStatement(actividad_con_pago);
+                } else {
+                    ps = connection.prepareStatement(actividad_sin_pago);
+                }
+                ps.setInt(1, id_menbresia);
+                ps.setString(2, nombreActividad);
+                ps.setString(3, nombreActividad);
+                rs = ps.executeQuery();
+                if (rs.next()) {
+                    fecha_limite = rs.getString("fecha");
+                    id_actividad = rs.getInt("id_actividad");
+                }
             }
             ps.close();
-            //paso 2
-            ps = connection.prepareStatement(actualizarFechaLimite);
+            //paso final 1 - actualizar fecha
+            ps = connection.prepareStatement(update_fecha_limite);
             ps.setString(1, fecha_limite);
             ps.setInt(2, id_actividad);
             ps.setInt(3, id_menbresia);
             ps.executeUpdate();
             ps.close();
-            //paso 3
-            ps = connection.prepareStatement(registropago);
-            ps.setInt(1, id_menbresia_titular);
-            ps.setInt(2, precio);
-            ps.setString(3, fecha_limite);
-            ps.setString(4, nombreActividad);
         }
+        //paso final 2 - registro de pago
+        ps = connection.prepareStatement(registrar_pago);
+        ps.setInt(1, id_menbresia);
+        ps.setInt(2, precio);
+        ps.setString(3, fecha_limite);
+        ps.setString(4, nombreActividad);
+        ps.executeUpdate();
+        ps.close();
+    }
+    
+    public ArrayList<Map<String, Object>> calcularPago(ArrayList<Integer> menbresias, int id_menbresia_titular, Boolean esAdmin) throws SQLException {
+        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
+        consultas.actulizarActividadesPagas();
+        ArrayList<Item> itemsSinPago = consultas.crearItemsConDescuento(menbresias, act_registro);
+        ArrayList<Item> itemsSinVencimiento = consultas.crearItemsConDescuento(menbresias, act_sin_vencimiento);
+        ArrayList<Item> itemsConVencimiento = consultas.crearItemsConDescuento(menbresias, act_con_vencimiento);
+        ArrayList<Item> itemsProcensadoSinPago = consultas.crearItemsConDescuento(menbresias, act_procesando_sin_pago);
+        ArrayList<Item> itemsProcensadoConPago = consultas.crearItemsConDescuento(menbresias, act_procesando_con_pago);
+        ArrayList<Item> itemsProcensadoPago = new ArrayList<>();
+        itemsProcensadoPago.addAll(itemsProcensadoSinPago);
+        itemsProcensadoPago.addAll(itemsProcensadoConPago);
+        ArrayList<Map<String, Object>> tablasActividades = new ArrayList<>();
+        String[] checkbox1 = {"pago-registro"};
+        String[] checkbox2 = {"pago"};
+        String[] checkbox3 = {"pago-proceso"};
+        if (esAdmin) {
+            tablasActividades.add(crearTablaPago("Actividades al Dia", "success", itemsSinVencimiento, null));
+            tablasActividades.add(crearTablaPago("Actividades Proximas a vencer", "danger", itemsConVencimiento, null));
+            tablasActividades.add(crearTablaPago("Actividades Para Pagar", "warning", itemsSinPago, null));
+            tablasActividades.add(crearTablaPago("Procesando Pago", "info", itemsProcensadoPago, checkbox3));
+        } else {
+            tablasActividades.add(crearTablaPago("Actividades al Dia", "success", itemsSinVencimiento, null));
+            tablasActividades.add(crearTablaPago("Actividades Proximas a vencer", "danger", itemsConVencimiento, checkbox2));
+            tablasActividades.add(crearTablaPago("Actividades Para Pagar", "warning", itemsSinPago, checkbox1));
+            tablasActividades.add(crearTablaPago("Procesando Pago", "info", itemsProcensadoPago, null));
+        }
+        return tablasActividades;
+
     }
 
-    public void PagarRegistro(int id_menbresia_titular, int id_menbresia, int precio, String nombreActividad) throws SQLException {
-        if (nombreActividad.contains("+")) {
-            String[] items = nombreActividad.split(" +");
-            PreparedStatement ps;
-            for (String actividad : items) {
-                if (!actividad.equals("+")) {
-                    //paso 1
-                    ps = connection.prepareStatement(actividadSinPagoPorNickname);
-                    ps.setInt(1, id_menbresia);
-                    ps.setString(2, actividad);
-                    ResultSet rs = ps.executeQuery();
-                    int id_actividad = 0;
-                    if (rs.next()) {
-                        id_actividad = rs.getInt("id_actividad");
-                    }
-                    ps.close();
-                    //paso 0
-                    ps = connection.prepareStatement(setFechaLimite);
-                    ps.setInt(1, id_actividad);
-                    ps.setInt(2, id_menbresia);
-                    ps.executeUpdate();
-                }
-            }
-            //paso 3
-            ps = connection.prepareStatement(registroprimerpago);
-            ps.setInt(1, id_menbresia_titular);
-            ps.setInt(2, precio);
-            ps.setString(3, nombreActividad);
-        } else {
-            //paso 1
-            PreparedStatement ps = connection.prepareStatement(actividadSinPagoPorNombre);
-            ps.setInt(1, id_menbresia);
-            ps.setString(2, nombreActividad);
-            ResultSet rs = ps.executeQuery();
-            int id_actividad = 0;
-            if (rs.next()) {
-                id_actividad = rs.getInt("id_actividad");
-            }
-            ps.close();
-            //paso 0
-            ps = connection.prepareStatement(setFechaLimite);
-            ps.setInt(1, id_actividad);
-            ps.setInt(2, id_menbresia);
-            ps.executeUpdate();
-            //paso 3
-            ps = connection.prepareStatement(registroprimerpago);
-            ps.setInt(1, id_menbresia_titular);
-            ps.setInt(2, precio);
-            ps.setString(3, nombreActividad);
+    public Map<String, Object> crearTablaPago(String title, String color, ArrayList<Item> actividades, String[] checkbox) {
+        Map<String, Object> tablaPago = new HashMap<>();
+        tablaPago.put("titulo", title);
+        tablaPago.put("color", color);
+        tablaPago.put("actividades", actividades);
+        if (checkbox != null) {
+            tablaPago.put("checkbox", checkbox);
         }
-//        PreparedStatement hojaVirtual = connection.prepareStatement(fechalimite);
+        return tablaPago;
+    }
+
+//        public void Pagar(int id_menbresia_titular, int id_menbresia, int precio, String nombreActividad) throws SQLException {
+//        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
+//        if (nombreActividad.contains("+")) {
+//            String[] items = nombreActividad.split(" +");
+//            String fecha_limite = "";
+//            PreparedStatement ps;
+//            for (String actividad : items) {
+//                if (!actividad.equals("+")) {
+//                    consultas.updatePagoListo(true, id_menbresia, actividad);
+//                    //paso 1
+//                    ps = connection.prepareStatement(actividadPorNickname);
+//                    ps.setInt(1, id_menbresia);
+//                    ps.setString(2, actividad);
+//                    ResultSet rs = ps.executeQuery();
+//                    int id_actividad = 0;
+//                    if (rs.next()) {
+//                        id_actividad = rs.getInt("id_actividad");
+//                        fecha_limite = rs.getString("fecha");
+//                    }
+//                    ps.close();
+//                    //paso 2
+//                    ps = connection.prepareStatement(actualizarFechaLimite);
+//                    ps.setString(1, fecha_limite);
+//                    ps.setInt(2, id_actividad);
+//                    ps.setInt(3, id_menbresia);
+//                    ps.executeUpdate();
+//                    ps.close();
+//                }
+//            }
+//            //paso 3
+//            ps = connection.prepareStatement(registropago);
+//            ps.setInt(1, id_menbresia_titular);
+//            ps.setInt(2, precio);
+//            ps.setString(3, fecha_limite);
+//            ps.setString(4, nombreActividad);
+//        } else {
+//            consultas.updatePagoListo(true, id_menbresia, nombreActividad);
+//            //paso 1
+//            PreparedStatement ps = connection.prepareStatement(actividadPorNombre);
+//            ps.setInt(1, id_menbresia);
+//            ps.setString(2, nombreActividad);
+//            ResultSet rs = ps.executeQuery();
+//            int id_actividad = 0;
+//            String fecha_limite = "";
+//            if (rs.next()) {
+//                id_actividad = rs.getInt("id_actividad");
+//                fecha_limite = rs.getString("fecha");
+//            }
+//            ps.close();
+//            //paso 2
+//            ps = connection.prepareStatement(actualizarFechaLimite);
+//            ps.setString(1, fecha_limite);
+//            ps.setInt(2, id_actividad);
+//            ps.setInt(3, id_menbresia);
+//            ps.executeUpdate();
+//            ps.close();
+//            //paso 3
+//            ps = connection.prepareStatement(registropago);
+//            ps.setInt(1, id_menbresia_titular);
+//            ps.setInt(2, precio);
+//            ps.setString(3, fecha_limite);
+//            ps.setString(4, nombreActividad);
+//        }
+//    }
+//
+//    public void PagarRegistro(int id_menbresia_titular, int id_menbresia, int precio, String nombreActividad) throws SQLException {
+//        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
+//        if (nombreActividad.contains("+")) {
+//            String[] items = nombreActividad.split(" +");
+//            PreparedStatement ps;
+//            for (String actividad : items) {
+//                if (!actividad.equals("+")) {
+//                    consultas.updatePagoListo(true, id_menbresia, actividad);
+//                    //paso 1
+//                    ps = connection.prepareStatement(actividadSinPagoPorNickname);
+//                    ps.setInt(1, id_menbresia);
+//                    ps.setString(2, actividad);
+//                    ResultSet rs = ps.executeQuery();
+//                    int id_actividad = 0;
+//                    if (rs.next()) {
+//                        id_actividad = rs.getInt("id_actividad");
+//                    }
+//                    ps.close();
+//                    //paso 0
+//                    ps = connection.prepareStatement(setFechaLimite);
+//                    ps.setInt(1, id_actividad);
+//                    ps.setInt(2, id_menbresia);
+//                    ps.executeUpdate();
+//                }
+//            }
+//            //paso 3
+//            ps = connection.prepareStatement(registroprimerpago);
+//            ps.setInt(1, id_menbresia_titular);
+//            ps.setInt(2, precio);
+//            ps.setString(3, nombreActividad);
+//        } else {
+//            consultas.updatePagoListo(true, id_menbresia, nombreActividad);
+//            //paso 1
+//            PreparedStatement ps = connection.prepareStatement(actividadSinPagoPorNombre);
+//            ps.setInt(1, id_menbresia);
+//            ps.setString(2, nombreActividad);
+//            ResultSet rs = ps.executeQuery();
+//            int id_actividad = 0;
+//            if (rs.next()) {
+//                id_actividad = rs.getInt("id_actividad");
+//            }
+//            ps.close();
+//            //paso 0
+//            ps = connection.prepareStatement(setFechaLimite);
+//            ps.setInt(1, id_actividad);
+//            ps.setInt(2, id_menbresia);
+//            ps.executeUpdate();
+//            //paso 3
+//            ps = connection.prepareStatement(registroprimerpago);
+//            ps.setInt(1, id_menbresia_titular);
+//            ps.setInt(2, precio);
+//            ps.setString(3, nombreActividad);
+//        }
+//    }
+    
+    //        PreparedStatement hojaVirtual = connection.prepareStatement(fechalimite);
 //        hojaVirtual.setInt(1, id_menbresia);
 //        hojaVirtual.setInt(2, precio);
 //        hojaVirtual.setString(3, nombreActividad);
@@ -173,18 +334,9 @@ public class TablaPagos {
 //            ps.setString(4, data.getString("fecha"));
 //            ps.setString(5, nombreActividad);
 //            ps.executeQuery();
-//        }
-    }
-
-    public Map<String, Object> calcularPago(ArrayList<Integer> menbresias, int id_menbresia_titular) throws SQLException {
-        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
-        consultas.actulizarActividadesPagas();
-        ArrayList<Item> itemSinPago = consultas.crearItemsConDescuento(menbresias, actividadessinpagos);
-        ArrayList<Item> itemConPago = consultas.crearItemsConDescuento(menbresias, actividadesconpagos);
-        Map<String, Object> pagos = new LinkedHashMap<>();
-        pagos.put("itemsRegistro", itemSinPago);
-        pagos.put("itemsMensual", itemConPago);
-        return pagos;
+//        Map<String, Object> p = new LinkedHashMap<>();
+//        pagos.put("itemsRegistro", itemSinPago);
+//        pagos.put("itemsMensual", itemConPago);
 //        ArrayList<Item> itemsRegistro = new ArrayList<>();
 //        ArrayList<Item> itemsMensual = new ArrayList<>();
 //        for (Item item : itemSinPago) {
@@ -210,8 +362,6 @@ public class TablaPagos {
 //            }
 //        }
 //        pagos.put("itemsDeuda", itemsDeuda);
-    }
-
 //    public String getFechaLimite(int id_menbresia) throws SQLException {
 //        PreparedStatement hojaVirtual = connection.prepareStatement(fechalimite);
 //        hojaVirtual.setInt(1, id_menbresia);
@@ -244,7 +394,6 @@ public class TablaPagos {
 //        }
 //        return usuariosPagos;
 //    }
-
 //    public ArrayList<Map<String, Object>> usuariosPagos() throws SQLException {
 //        Statement hojaVirtual = connection.createStatement();
 //        ResultSet data = hojaVirtual.executeQuery(usuariosPagosData);

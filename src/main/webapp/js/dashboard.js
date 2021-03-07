@@ -73,7 +73,11 @@ function createTableHTML(array, camposExtra = [], titular) {
   let header = "";
   let body = "";
   let campos = camposExtra;
-  let id = camposExtra?.[0] == "editar" ? "listaUsuarios" : "table";
+  //cambiamos table por el nombre de la tabla
+  let id =
+    camposExtra?.[0] == "fa-user-edit"
+      ? "listaUsuarios"
+      : titular?.titulo ?? "table";
   /* Header */
   for (const key in array[0]) {
     campos.push(key);
@@ -81,7 +85,12 @@ function createTableHTML(array, camposExtra = [], titular) {
   campos = campos.filter((e) => e.indexOf("id") !== 0);
   campos.forEach((e) => {
     let thName =
-      e == "presente" || e == "pago-registro" || e == "pago" ? "" : e;
+      e == "presente" ||
+      e == "pago-registro" ||
+      e == "pago" ||
+      e == "pago-proceso"
+        ? ""
+        : e;
     header += `<th class="sticky-top">${thName}</th>`;
   });
   /* Body */
@@ -91,45 +100,22 @@ function createTableHTML(array, camposExtra = [], titular) {
         ${campos.reduce((fila, campo) => {
           fila += `<td>`;
           switch (campo) {
-            case "editar":
+            case "fa-user-edit":
+            case "fa-user-times":
+            case "fa-money-check-alt":
+            case "fa-unlock-alt":
               fila += `
-                <i id="${e.id}" class="fas fa-user-edit fa-2x text-info edit" role="button"></i>`;
-              break;
-            case "banear":
-              fila += `
-                <i id="${e.id}" class="fas fa-user-times fa-2x text-danger delete" role="button"></i>`;
-              break;
-            case "pagar":
-              fila += `
-                <i id="${e.id}" class="fas fa-money-check-alt fa-2x text-success pagar" role="button"></i>`;
-              break;
-            case "reset-password":
-              fila += `
-                  <i id="${e.id}" class="fas fa-unlock-alt fa-2x text-primary reset-password" role="button"></i>`;
+                <i id="${e.id}" class="fas ${campo} fa-2x" role="button"></i>`;
               break;
             case "pago":
-              fila += `
-                <input type="checkbox" class="input-checkbox" 
-                  value='${JSON.stringify(e)}' 
-                  name="pago"
-                >`;
-              break;
             case "pago-registro":
-              fila += `
-                    <input type="checkbox" class="input-checkbox" 
-                      value='${JSON.stringify(e)}' 
-                      name="pago-registro"
-                    >`;
-              break;
+            case "pago-proceso":
             case "presente":
-              fila += `
-                  <input type="checkbox" class="input-checkbox" value="${e.id_usuario}" name="presente">`;
-              break;
             case "actividad deseada":
               fila += `
                 <input type="checkbox" class="input-checkbox" 
                   value='${JSON.stringify(e)}' 
-                  name="actividad"
+                  name="${campo}"
                 >`;
               break;
             default:
@@ -169,25 +155,28 @@ function marcarActividades() {
   console.log("marcar actividades");
 }
 
-async function tablasPago(usuario) {
-  const data = await fetchData(`checkout?id_usuario=${usuario.id}`);
+async function tablasPago(usuario, isAdmin) {
+  const data = await fetchData(
+    `checkout?id_usuario=${usuario.id}&isAdmin=${isAdmin}`
+  );
   const tablasActividades = document.createElement("DIV");
   let contenidoTablasHTML = "";
-  //tablas actividades
-  const titular2 = {
-    titulo: "Actividades - Pago Mensual",
-    color: "warning",
-  };
-  contenidoTablasHTML += createTableHTML(data.itemsMensual, ["pago"], titular2);
-  const titular3 = {
-    titulo: "Actvidades - Pago Registro",
-    color: "info",
-  };
-  contenidoTablasHTML += createTableHTML(
-    data.itemsRegistro,
-    ["pago-registro"],
-    titular3
-  );
+  for (let i = 0; i < data.length; i++) {
+    const infoActividad = data[i];
+    if (infoActividad.actividades.length > 0) {
+      if (infoActividad.titulo == "Procesando Pago") {
+        user.pagoTotal = infoActividad.actividades.reduce(
+          (acc, e) => acc + e.unitPrice,
+          0
+        );
+      }
+      contenidoTablasHTML += createTableHTML(
+        infoActividad.actividades,
+        infoActividad.checkbox,
+        infoActividad
+      );
+    }
+  }
   tablasActividades.innerHTML = contenidoTablasHTML;
   return tablasActividades;
 }

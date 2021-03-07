@@ -34,14 +34,14 @@ public class RegistroPago extends HttpServlet {
         Gson gson = new Gson();
         //datos del front
         String strActividades = request.getParameter("actividades");
-        String strActividadesRegistro = request.getParameter("actividadesRegistro");
+//        String strActividadesRegistro = request.getParameter("actividadesRegistro");
         int id_usuario = Integer.parseInt(request.getParameter("id_usuario"));
         //tablas
         TablaPagos consultasPagos = new TablaPagos();
         TablaUsuarios consultasUsuarios = new TablaUsuarios();
         int id_menbresia_titular;
         ArrayList<Map<String, Object>> actividades = gson.fromJson(strActividades, ArrayList.class);
-        ArrayList<Map<String, Object>> actividadesRegistro = gson.fromJson(strActividadesRegistro, ArrayList.class);
+//        ArrayList<Map<String, Object>> actividadesRegistro = gson.fromJson(strActividadesRegistro, ArrayList.class);
         Map<String, Object> respuesta = new HashMap();
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
@@ -53,13 +53,15 @@ public class RegistroPago extends HttpServlet {
                 int id_menbresia = Integer.parseInt((String) actividad.get("id"));
                 consultasPagos.Pagar(id_menbresia_titular, id_menbresia, precio, nombreActividad);
             }
-            for (Map<String, Object> actividadeRegistro : actividadesRegistro) {
-                int precio = (int) (double) actividadeRegistro.get("unitPrice");
-                String nombreActividad = (String) actividadeRegistro.get("title");
-                int id_menbresia = Integer.parseInt((String) actividadeRegistro.get("id"));
-                consultasPagos.PagarRegistro(id_menbresia_titular, id_menbresia, precio, nombreActividad);
-            }
-            respuesta.put("pago", "el pago se realizo correctamente");
+//            for (Map<String, Object> actividadeRegistro : actividadesRegistro) {
+//                int precio = (int) (double) actividadeRegistro.get("unitPrice");
+//                String nombreActividad = (String) actividadeRegistro.get("title");
+//                int id_menbresia = Integer.parseInt((String) actividadeRegistro.get("id"));
+//                consultasPagos.PagarRegistro(id_menbresia_titular, id_menbresia, precio, nombreActividad);
+//            }
+            respuesta.put("icon", "success");
+            respuesta.put("title", "Felicidades");
+            respuesta.put("text", "El pago se realizo correctamente");
         } catch (SQLException ex) {
             ex.printStackTrace();
             Logger.getLogger(RegistroPago.class.getName()).log(Level.SEVERE, null, ex);

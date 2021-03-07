@@ -1,16 +1,16 @@
 function createCanvas(idCanvas) {
   const canvas = document.createElement("CANVAS");
   canvas.id = idCanvas;
-  canvas.classList.add("graficos")
+  canvas.classList.add("graficos");
   const contenedorCanvas = document.createElement("DIV");
   contenedorCanvas.appendChild(canvas);
-  $informacion.appendChild(contenedorCanvas)
+  $informacion.appendChild(contenedorCanvas);
 }
 
 function displayGraphics(labels, values, idCanvas, titulo) {
   let ctx = document.getElementById(idCanvas).getContext("2d");
   let myChart = new Chart(ctx, {
-    type: "pie",
+    type: "bar",
     data: {
       labels: labels,
       datasets: [
@@ -38,7 +38,6 @@ function displayGraphics(labels, values, idCanvas, titulo) {
             "rgba(232, 127, 178, 1)",
             "rgba(77, 143, 179, 1)",
             "rgba(80, 230, 204, 1)",
-            
           ],
           borderWidth: 1,
         },
@@ -55,9 +54,9 @@ function displayGraphics(labels, values, idCanvas, titulo) {
         ],
       },
       title: {
-            display: true,
-            text: titulo
-        }
+        display: true,
+        text: titulo,
+      },
     },
   });
 }

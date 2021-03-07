@@ -38,104 +38,34 @@ public class CheckoutMercadoPago extends HttpServlet {
         //JSON
         Gson gson = new Gson();
         //datos del front
-//        String strActividades = request.getParameter("actividades");
-//        if(request.getParameter("actividades") == null){
-//            strActividades = "";
-//        }
         int id_titular = Integer.parseInt(request.getParameter("id_usuario"));
+        Boolean esAdmin = Boolean.parseBoolean(request.getParameter("isAdmin"));
 //        String strPreference = request.getParameter("preference");
         //tablas de consultas
         TablaUsuarios consultasUsuarios = new TablaUsuarios();
         TablaActividadesMenbresias consultasActividades = new TablaActividadesMenbresias();
         TablaPagos consultasPagos = new TablaPagos();
-        Map<String, Object> respuesta = new HashMap<>();
+        ArrayList<Map<String, Object>> respuesta = new ArrayList<>();
         //variables
-//        int menbresiaRegistro = 0;
         ArrayList<Integer> menbresias;
-//        ArrayList<Map<String, Object>> actividades = gson.fromJson(strActividades, ArrayList.class);
-        ArrayList<Item> items = new ArrayList<>();
-//        int id_titular;
+//        ArrayList<Item> items = new ArrayList<>();
         int id_menbresia_titular;
-        //creamos la menbresia
-//        int id_menbresia;
-        // Crea o usar un objeto de preferencia
-//        Preference preference = new Preference();
-        //informacion de la session
-//        HttpSession session = request.getSession();
-//        Usuario user = (Usuario) session.getAttribute("UserData");
+
         try {
             // Agrega credenciales
-            MercadoPago.SDK.setAccessToken("TEST-5002283706407276-021223-00f2b94570b01f18fdc542a7a8419258-714772071");
+//            MercadoPago.SDK.setAccessToken("TEST-5002283706407276-021223-00f2b94570b01f18fdc542a7a8419258-714772071");
             id_menbresia_titular = consultasUsuarios.getMenbresia(id_titular);
-//            if (id_menbresia == 0) {
-//                id_menbresia = consultasUsuarios.crearMenbresia(id_usuario);
-//            }
-//            if (!actividades.isEmpty()) {
-//                consultasActividades.anotarUsuarioActividades(id_menbresia, actividades);
-//            }
-//            id_titular = consultasUsuarios.getIdTitular(id_usuario);
-//            if (id_titular == 0) {
-//                id_menbresia_titular = id_menbresia;
-//                id_titular = id_usuario;
-//                if (!actividades.isEmpty()) {
-//                    //titular se anota a nueva actividad
-//                    menbresiaRegistro = id_menbresia;
-//                }
-//            } else {
-//                id_menbresia_titular = consultasUsuarios.getMenbresia(id_titular);
-//                //familiar se anota a nueva actividad
-//                menbresiaRegistro = id_menbresia;
-//            }
             menbresias = consultasActividades.listaMenbresias(id_titular, id_menbresia_titular);
-            
-            respuesta = consultasPagos.calcularPago(menbresias, id_menbresia_titular);
-            //definir preferencia -> obtener || crear
-//            if (strPreference == null) {
-//                //agregar los items a la preferecia
-//                preference.setItems(items);
-//                preference = completarPreference(preference, user, id_menbresia_titular, precioTotal(items));
-//            } else {
-//                preference = (Preference) gson.fromJson(strPreference, Map.class);
-//                //agregar los items a la preferecia
-//                preference.setItems(items);
-//            }
-//            preference.save();
-        } catch (MPException ex) {
-            ex.printStackTrace();
-            Logger.getLogger(CheckoutMercadoPago.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+            respuesta = consultasPagos.calcularPago(menbresias, id_menbresia_titular, esAdmin);
+        }catch (SQLException ex) {
             ex.printStackTrace();
             Logger.getLogger(CheckoutMercadoPago.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-//        out.print(gson.toJson(preference));
         out.print(gson.toJson(respuesta));
     }
-
-//    public ArrayList<Item> crearItems(int id_menbresia, float descuento, TablaUsuarios consultasUsuarios, TablaActividadesMenbresias consultasActividades, ArrayList<Map<String, Object>> ActividadesRegistro) throws SQLException {
-//        ArrayList<Item> items = new ArrayList<>();
-//        //calcular y crear items
-//        ArrayList<Map<String, Object>> actividadesAux = consultasUsuarios.actividadesPorMenbresia(id_menbresia);;
-//        ArrayList<Map<String, Object>> actividades = new ArrayList<>();
-//        System.out.println("run 0");
-//        //quitar las actividades que ya pague
-//        if (ActividadesRegistro.isEmpty()) {
-//            actividades = ActividadesRegistro;
-//        } else {
-//            for (Map<String, Object> actividadAux : actividadesAux) {
-//                for (Map<String, Object> actividadRegistro : ActividadesRegistro) {
-//                    int id_actividadAux = Integer.parseInt((String) actividadAux.get("id_actividad"));
-//                    int id_actividadRegistro = Integer.parseInt((String) actividadRegistro.get("id_actividad"));
-//                    if (id_actividadAux == id_actividadRegistro) {
-//                        actividades.add(actividadAux);
-//                    }
-//                }
-//            }
-//        }
-//        //copleta
-//    }
 
     public Preference completarPreference(Preference preference, Usuario user, int id_menbresia, float precioTotal) {
         //pagador
@@ -174,6 +104,43 @@ public class CheckoutMercadoPago extends HttpServlet {
     }
 
     /* en proceso de creacion */
+            //creamos la menbresia
+//        int id_menbresia;
+        // Crea o usar un objeto de preferencia
+//        Preference preference = new Preference();
+        //informacion de la session
+//        HttpSession session = request.getSession();
+//        Usuario user = (Usuario) session.getAttribute("UserData");
+    //            if (id_menbresia == 0) {
+//                id_menbresia = consultasUsuarios.crearMenbresia(id_usuario);
+//            }
+//            if (!actividades.isEmpty()) {
+//                consultasActividades.anotarUsuarioActividades(id_menbresia, actividades);
+//            }
+//            id_titular = consultasUsuarios.getIdTitular(id_usuario);
+//            if (id_titular == 0) {
+//                id_menbresia_titular = id_menbresia;
+//                id_titular = id_usuario;
+//                if (!actividades.isEmpty()) {
+//                    //titular se anota a nueva actividad
+//                    menbresiaRegistro = id_menbresia;
+//                }
+//            } else {
+//                id_menbresia_titular = consultasUsuarios.getMenbresia(id_titular);
+//                //familiar se anota a nueva actividad
+//                menbresiaRegistro = id_menbresia;
+//            }
+                //definir preferencia -> obtener || crear
+//            if (strPreference == null) {
+//                //agregar los items a la preferecia
+//                preference.setItems(items);
+//                preference = completarPreference(preference, user, id_menbresia_titular, precioTotal(items));
+//            } else {
+//                preference = (Preference) gson.fromJson(strPreference, Map.class);
+//                //agregar los items a la preferecia
+//                preference.setItems(items);
+//            }
+//            preference.save();
 //    public void primerPago() {
 //        StringBuffer itemConDescuento = new StringBuffer();
 //

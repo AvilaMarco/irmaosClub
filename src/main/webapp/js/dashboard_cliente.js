@@ -53,7 +53,6 @@ async function ActividadesHorarios(usuario) {
   $informacion.appendChild(divDataUser);
   $informacion.appendChild(divTabla);
   divDataUser.innerHTML = dataInscripcionUsuario(usuario);
-  //filtro de actividades hechas
   divScroll.innerHTML = createTableHTML(actividades, ["actividad deseada"]);
   crearBotonRegistro(divTabla, usuario);
   selectByRow();
@@ -110,19 +109,15 @@ async function consultaPago() {
   clearInformacion();
   const botones = document.createElement("DIV");
   const contenedor = document.createElement("DIV");
-  const tablasActividades = await tablasPago(user);
+  const tablasActividades = await tablasPago(user, false);
   let contenidoBotonesHTML = "";
   //botones
   contenidoBotonesHTML += `
-  <button id="marcar-actividades" class="btn btn-info">
+  <button id="marcar-actividades" class="btn btn-info d-none">
     Marcar Todas las Actividades
   </button>
   `;
-  contenidoBotonesHTML += `
-  <button class="btn btn-info" data-toggle="modal" data-target="#modal" id="datos-pago">
-    Datos para Pagar
-  </button>
-  `;
+  contenidoBotonesHTML += `<button class="btn btn-info" id="datos-pago"></button>`;
 
   botones.innerHTML = contenidoBotonesHTML;
   contenedor.appendChild(tablasActividades);
@@ -134,6 +129,8 @@ async function consultaPago() {
   const btnDatosPago = document.getElementById("datos-pago");
   btnMarcarActividades.addEventListener("click", marcarActividades);
   btnDatosPago.addEventListener("click", datosPagar);
+
+  actulizarBotonCheckout();
 }
 
 function datosPagar() {
@@ -141,7 +138,19 @@ function datosPagar() {
   const actividades = objetoActividades.actividades.concat(
     objetoActividades.actividadesRegistro
   );
-  cargarDatosModal(actividades);
+  if (user.pagoTotal) {
+    cargarDatosModal();
+  } else if (actividades.length == 0) {
+    const alerta = {
+      icon: "error",
+      title: "Oops....",
+      text: "Marque alguna actividad que desea pagar",
+    };
+    SwalAlert(alerta);
+  } else {
+    cargarDatosModal(actividades);
+  }
+  actulizarBotonCheckout();
 }
 
 async function registroUsuarioActividad(usuario) {
@@ -190,9 +199,21 @@ function cargarDatosModal(actividades) {
   contentModal.innerHTML = "";
   const div = document.createElement("DIV");
   div.classList.add("d-flex", "flex-equals");
-  div.innerHTML += ModalInfoPago();
-  div.innerHTML += mensajePago(actividades);
+  if (actividades) {
+    div.innerHTML += mensajePago(actividades);
+  } else {
+    div.innerHTML += ModalInfoPago();
+  }
   contentModal.appendChild(div);
+
+  $("#modal").modal();
+  if (actividades) {
+    //eventos
+    const $btnPagoListo = document.getElementById("pago-listo");
+    $btnPagoListo.addEventListener("click", () =>
+      actividadesPagoListo(actividades)
+    );
+  }
 }
 
 function ModalInfoPago() {
@@ -203,21 +224,58 @@ function ModalInfoPago() {
     <li class="list-group-item">Cuit: ${DATOS_PAGO.CUIT}</li>
     <li class="list-group-item">Titular: ${DATOS_PAGO.TITULAR}</li>
     <li class="list-group-item">Email: ${DATOS_PAGO.EMAIL}</li>
+    <li class="list-group-item">Total a Pagar: ${user.pagoTotal}</li>
   </ul>
   `;
 }
 
 function mensajePago(actividades) {
   let textoActividades = actividades.reduce(
-    (acc, e) => acc + `${e.title}, `,
+    (acc, e) => acc + `${e.title}  `,
     ""
   );
+  const pagoTotal = actividades.reduce((acc, e) => acc + e.unitPrice, 0);
+  user.pagoTotal = pagoTotal;
   return `
-  <p>
-  Las actividades que estoy pagando son las siguientes: <br>
-  ${textoActividades}
-  </p>
+  <div>
+    <p>
+      Las actividades que estoy pagando son las siguientes: <br>
+      ${textoActividades}
+      <br>
+      El total a pagar es: ${pagoTotal}
+    </p>
+    <label>
+      <input type="checkbox" id="input-pago-listo">
+      Estoy de acuerdo en pagar las actividades mencionadas
+    </label>
+    <button class="btn btn-success" id="pago-listo">Enviar</button>
+  </div>
   `;
+}
+
+async function actividadesPagoListo(actividades) {
+  const esPagoListo = document.getElementById("input-pago-listo").checked;
+  if (esPagoListo) {
+    console.log("registro pago listo en las actividades");
+    const formulario = new FormData();
+    formulario.append("actividades", JSON.stringify(actividades));
+    const config = {
+      method: "PUT",
+      body: formulario,
+      header: { "Content-Type": "application/x-www-form-urlencoded" },
+    };
+    const data = await fetchData("pagolisto", config);
+    SwalAlert(data);
+    cargarDatosModal();
+    $("#modal").on("hide.bs.modal", consultaPago);
+  } else if (!esPagoListo) {
+    const alerta = {
+      icon: "error",
+      title: "Oops....",
+      text: "Marque la casilla",
+    };
+    SwalAlert(alerta);
+  }
 }
 
 function crearTarjetaActividad(actividad) {
@@ -242,6 +300,23 @@ function crearBotonRegistro(divTabla, usuario) {
   $btnAnotarse.addEventListener("click", () =>
     registroUsuarioActividad(usuario)
   );
+}
+
+function actulizarBotonCheckout() {
+  const btn = document.getElementById("datos-pago");
+  const actividadesPago = document.querySelector("input[name=pago]");
+  const actividadesPagoRegistro = document.querySelector(
+    "input[name=pago-registro]"
+  );
+  const actividadesPagoProceso = document.getElementById("Procesando Pago");
+  btn.classList.remove("d-none");
+  if (actividadesPago != null || actividadesPagoRegistro != null) {
+    btn.textContent = "Actividades a Pagar";
+  } else if (actividadesPagoProceso != null) {
+    btn.textContent = "Datos para Pagar";
+  } else {
+    btn.classList.add("d-none");
+  }
 }
 
 function createPaymentButton(preferenceId) {
