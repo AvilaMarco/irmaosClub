@@ -28,12 +28,15 @@ public class TablaPagos {
 //    private final String id_hijos = "select id_usuario from usuarios where id_titular = (" + id_usuario + ")";
 //    private final String id_usuario = "select id_usuario from menbresias where id_menbresia = ?";
     //consultas
+    //consultas auxiliares
+    private final String precioPorCantidad = "if(count(id_actividad) > 1, 2000, precio) as precio";
+    private final String fechaLimite = "year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day";
     //pagos
-    private final String act_registro = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 0 order by nickname";
-    private final String act_procesando_sin_pago = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 1 order by nickname";
-    private final String act_procesando_con_pago = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and pago_listo = 1 and datediff(fecha_limite, now()) between 0 and 7 order by nickname";
-    private final String act_con_vencimiento = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) between 0 and 7 and pago_listo = 0 order by nickname";
-    private final String act_sin_vencimiento = "select year(fecha_limite) as year, month(fecha_limite) as month, day(fecha_limite) as day, id_actividad, nombre, nickname, precio, grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) > 7 and pago_listo = 0 order by nickname";
+    private final String act_registro = "select "+fechaLimite+", id_actividad, nombre, nickname, "+precioPorCantidad+", grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 0 group by id_actividad order by nickname";
+    private final String act_procesando_sin_pago = "select "+fechaLimite+", id_actividad, nombre, nickname, "+precioPorCantidad+", grupo_descuento from actividades_menbresias natural join actividades where pago = 0 and id_menbresia = ? and pago_listo = 1 group by id_actividad order by nickname";
+    private final String act_procesando_con_pago = "select "+fechaLimite+", id_actividad, nombre, nickname, "+precioPorCantidad+", grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and pago_listo = 1 and datediff(fecha_limite, now()) between 0 and 7 group by id_actividad order by nickname";
+    private final String act_con_vencimiento = "select "+fechaLimite+", id_actividad, nombre, nickname, "+precioPorCantidad+", grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) between 0 and 7 and pago_listo = 0 group by id_actividad order by nickname";
+    private final String act_sin_vencimiento = "select "+fechaLimite+", id_actividad, nombre, nickname, "+precioPorCantidad+", grupo_descuento from actividades_menbresias natural join actividades where pago = 1 and id_menbresia = ? and datediff(fecha_limite, now()) > 7 and pago_listo = 0 group by id_actividad order by nickname";
 //    private String pagodeudca = "INSERT INTO `pagos`(`id_menbresia`, `precio`, `fecha_pago`, `fecha_limite`, `item_actividad`) VALUES (?, ?, ?, ?, ?)";
     //pagos 2
     //actividades 1
@@ -47,7 +50,7 @@ public class TablaPagos {
     private final String actividadSinPagoPorNombre = "select id_actividad from actividades_menbresias natural join actividades where id_menbresia = ? and nombre = ?;";
     private final String actividadSinPagoPorNickname = "select id_actividad from actividades_menbresias natural join actividades where id_menbresia = ? and nickname = ?;";
     //pagos final
-    private final String estaPago = "select pago from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
+    private final String estaPago = "select pago from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?) order by fecha_limite";
     private final String actividad_con_pago = "select id_actividad, date_add(fecha_limite, interval 1 month) as fecha from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
     private final String actividad_sin_pago = "select id_actividad, date_add(now(), interval 1 month) as fecha from actividades_menbresias natural join actividades where id_menbresia = ? and (nombre = ? or nickname = ?); ";
     private final String update_fecha_limite = "update actividades_menbresias set pago = 1, fecha_limite = date(?) where id_actividad = ? and id_menbresia = ?;";

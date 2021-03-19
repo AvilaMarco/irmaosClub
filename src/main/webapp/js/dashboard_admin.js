@@ -54,6 +54,7 @@ async function traerDineroPorMes() {
   const ordenarDineroMensual = dineroMensual.reverse();
   const values = ordenarDineroMensual.map((e) => e.dinero_total);
   const labels = ordenarDineroMensual.map((e) => mesAño(e));
+  clearInformacion();
   createCanvas("canvas-dinero-por-mes");
   displayGraphics(labels, values, "canvas-dinero-por-mes", "Dinero por Mes");
 }
@@ -123,7 +124,10 @@ async function haddlerListaUsuarios(event) {
     //pagar actividades de usuario
     clearModal();
     usuarioAModificar = usuariosData.find((e) => e.id == element.id);
-    MostrarBtnAccion("accion-pagar");
+    const tablaProcesandoPago = document.getElementById("Procesando Pago");
+    if (tablaProcesandoPago != null) {
+      MostrarBtnAccion("accion-pagar");
+    }
     const tablasActividades = await tablasPago(usuarioAModificar, true);
     const divBotones = document.createElement("DIV");
     let contenidoBotonesHTML = "";
@@ -133,11 +137,6 @@ async function haddlerListaUsuarios(event) {
       Marcar Todas las Actividades
     </button>
     `;
-    // contenidoBotonesHTML += `
-    // <button class="btn btn-info" data-toggle="modal" data-target="#modal" id="pagar">
-    //   Pagar
-    // </button>
-    // `;
     divBotones.innerHTML = contenidoBotonesHTML;
     modalTitle.innerHTML = "Registro Pago";
 
@@ -147,8 +146,6 @@ async function haddlerListaUsuarios(event) {
     selectByRow();
     //agregar eventos
     const btnMarcarActividades = document.getElementById("marcar-actividades");
-    // const btnDatosPago = document.getElementById("pagar");
-    // btnDatosPago.addEventListener("click", pagar);
     btnMarcarActividades.addEventListener("click", marcarActividades);
 
     // mostrar modal
@@ -208,7 +205,7 @@ function eliminarUsuario() {
 
 async function pagar() {
   const inputActividades = Array.from(
-    document.querySelectorAll("[name=pago-proceso]")
+    document.querySelectorAll("[name=pago-proceso]:checked")
   );
   const actividades = inputActividades.map((e) => JSON.parse(e.value));
   const formulario = new FormData();

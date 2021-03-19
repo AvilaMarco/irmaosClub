@@ -56,7 +56,7 @@ public class TablaUsuarios {
 //    private final String actividades_menbresia = "SELECT id_actividad, nombre, nickname, precio, grupo_descuento FROM actividades_menbresias NATURAL JOIN actividades WHERE id_menbresia = ? ORDER BY nickname;";
     private final String listaidfamiliares = "select id_usuario from usuarios where id_titular = ?";
     private final String tarjetausuario = "SELECT id_usuario, nombres, apellidos, usuario, concat(apellidos, \" \", nombres) nombre, email, floor( DATEDIFF(NOW(), fecha_nacimiento) / 365) as edad FROM usuarios WHERE id_usuario = ?";
-    private final String tarjetausuarioactividades = "SELECT fecha_limite, nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias FROM actividades_menbresias natural join actividades NATURAL JOIN horarios NATURAL JOIN dias_horarios where id_menbresia = ? group by id_actividad;";
+    private final String tarjetausuarioactividades = "SELECT fecha_limite, nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias FROM actividades_menbresias natural join actividades NATURAL JOIN horarios NATURAL JOIN dias_horarios where id_menbresia = ? group by id_horario;";
     private final String usuarioPorNombre = "select * from usuarios where usuario = ?;";
     private final String usuarioPorEmailODNI = "select * from usuarios where dni = ? or email = ?;";
     private final String updatePassword = "UPDATE `usuarios` SET password = ? WHERE id_usuario = ?;";

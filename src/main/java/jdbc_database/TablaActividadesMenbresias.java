@@ -16,14 +16,14 @@ public class TablaActividadesMenbresias {
     //cantidad de usuarios por horario-actividad
     private final String usuarios_horarios = "SELECT horarios.id_actividad, horarios.id_horario, COUNT(actividades_menbresias.id_horario) AS cantidad_usuarios, hora FROM horarios LEFT JOIN actividades_menbresias natural join menbresias ON horarios.id_horario = actividades_menbresias.id_horario WHERE pago = 1 GROUP BY horarios.id_horario";
     private final String cantidad_usuarios_horarios = "SELECT nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias, cantidad_usuarios FROM ((" + usuarios_horarios + ") AS a NATURAL JOIN actividades) NATURAL JOIN dias_horarios GROUP BY id_horario;";
-    private final String actvidades_horarios = "SELECT nickname, id_actividad, id_horario, nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias, precio FROM actividades NATURAL JOIN horarios NATURAL JOIN dias_horarios where nickname not like \"%especial\" GROUP BY id_horario";
+    private final String actvidades_horarios = "SELECT nickname, id_actividad, id_horario, nombre, hora, GROUP_CONCAT(dia SEPARATOR ', ') AS dias, precio FROM actividades NATURAL JOIN horarios NATURAL JOIN dias_horarios where nickname not like '%especial' GROUP BY id_horario";
     private final String anotarUsuarioActividad = "INSERT INTO actividades_menbresias (id_actividad, id_menbresia, id_horario) VALUE (?, ?, ?)";
     private final String listaemenbresias = "SELECT id_menbresia FROM actividades_menbresias NATURAL JOIN menbresias WHERE id_usuario = ANY (SELECT id_usuario FROM usuarios WHERE id_titular = ?) OR id_menbresia = ? GROUP BY id_menbresia ORDER BY fecha_creacion;";
     private final String listadescuentos = "SELECT * FROM descuentos_bjj";
     private final String comboActividad = "SELECT * FROM combos_actividades_bjj WHERE nombre = ?;";
     private final String updateActividadesPagas = "update actividades_menbresias set pago = 0 where pago = 1 and date(fecha_limite) < now();";
-    private final String set_fecha_pago = "update actividades_menbresias set fecha_limite = date(?) where id_menbresia = ? and id_actividad = ?";
-    private final String update_pago_listo = "update actividades_menbresias natural join actividades set pago_listo = ?  where id_menbresia = ? and (nombre = ? || nickname = ?);";
+    private final String set_fecha_pago = "update actividades_menbresias set fecha_limite = date(?) where id_menbresia = ? and id_actividad = ? and pago = 1";
+    private final String update_pago_listo = "update actividades_menbresias natural join actividades set pago_listo = ?  where datediff(fecha_limite, now()) < 8 and id_menbresia = ? and (nombre = ? || nickname = ?);";
 
     public TablaActividadesMenbresias() {
         connection = new Mysql().getConexion();

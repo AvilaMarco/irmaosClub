@@ -159,6 +159,7 @@ async function tablasPago(usuario, isAdmin) {
   const data = await fetchData(
     `checkout?id_usuario=${usuario.id}&isAdmin=${isAdmin}`
   );
+  // debugger;
   const tablasActividades = document.createElement("DIV");
   let contenidoTablasHTML = "";
   for (let i = 0; i < data.length; i++) {
@@ -200,7 +201,9 @@ function actividadesMarcadas() {
 function selectByRow() {
   const $tablas = Array.from(document.querySelectorAll("#select-by-row"));
   $tablas.forEach((e) => {
-    e.addEventListener("click", manejadorTabla);
+    if (e.querySelector("input") != null) {
+      e.addEventListener("click", manejadorTabla);
+    }
   });
 }
 

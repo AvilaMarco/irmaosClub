@@ -117,7 +117,10 @@ async function consultaPago() {
     Marcar Todas las Actividades
   </button>
   `;
-  contenidoBotonesHTML += `<button class="btn btn-info" id="datos-pago"></button>`;
+  contenidoBotonesHTML += `
+  <button class="btn btn-info" id="datos-pago">Datos para Pagar</button>
+  <button class="btn btn-info" id="checkout">Actividades a Pagar</button>
+  `;
 
   botones.innerHTML = contenidoBotonesHTML;
   contenedor.appendChild(tablasActividades);
@@ -127,20 +130,22 @@ async function consultaPago() {
   //agregar eventos
   const btnMarcarActividades = document.getElementById("marcar-actividades");
   const btnDatosPago = document.getElementById("datos-pago");
+  const btnCheckout = document.getElementById("checkout");
   btnMarcarActividades.addEventListener("click", marcarActividades);
-  btnDatosPago.addEventListener("click", datosPagar);
+  btnDatosPago.addEventListener("click", () =>
+    cargarDatosModal(ModalInfoPago())
+  );
+  btnCheckout.addEventListener("click", checkoutActividades);
 
-  actulizarBotonCheckout();
+  actulizarBotonesCheckout();
 }
 
-function datosPagar() {
+function checkoutActividades() {
   const objetoActividades = actividadesMarcadas();
   const actividades = objetoActividades.actividades.concat(
     objetoActividades.actividadesRegistro
   );
-  if (user.pagoTotal) {
-    cargarDatosModal();
-  } else if (actividades.length == 0) {
+  if (actividades.length == 0) {
     const alerta = {
       icon: "error",
       title: "Oops....",
@@ -148,9 +153,12 @@ function datosPagar() {
     };
     SwalAlert(alerta);
   } else {
-    cargarDatosModal(actividades);
+    cargarDatosModal(mensajePago(actividades));
+    const $btnPagoListo = document.getElementById("pago-listo");
+    $btnPagoListo.addEventListener("click", () =>
+      actividadesPagoListo(actividades)
+    );
   }
-  actulizarBotonCheckout();
 }
 
 async function registroUsuarioActividad(usuario) {
@@ -194,26 +202,14 @@ function tarjetaPago(actividades) {
   `;
 }
 
-function cargarDatosModal(actividades) {
+function cargarDatosModal(contenido) {
   const contentModal = document.getElementById("modal-body");
   contentModal.innerHTML = "";
   const div = document.createElement("DIV");
   div.classList.add("d-flex", "flex-equals");
-  if (actividades) {
-    div.innerHTML += mensajePago(actividades);
-  } else {
-    div.innerHTML += ModalInfoPago();
-  }
+  div.innerHTML += contenido;
   contentModal.appendChild(div);
-
   $("#modal").modal();
-  if (actividades) {
-    //eventos
-    const $btnPagoListo = document.getElementById("pago-listo");
-    $btnPagoListo.addEventListener("click", () =>
-      actividadesPagoListo(actividades)
-    );
-  }
 }
 
 function ModalInfoPago() {
@@ -256,7 +252,6 @@ function mensajePago(actividades) {
 async function actividadesPagoListo(actividades) {
   const esPagoListo = document.getElementById("input-pago-listo").checked;
   if (esPagoListo) {
-    console.log("registro pago listo en las actividades");
     const formulario = new FormData();
     formulario.append("actividades", JSON.stringify(actividades));
     const config = {
@@ -265,9 +260,10 @@ async function actividadesPagoListo(actividades) {
       header: { "Content-Type": "application/x-www-form-urlencoded" },
     };
     const data = await fetchData("pagolisto", config);
-    SwalAlert(data);
-    cargarDatosModal();
-    $("#modal").on("hide.bs.modal", consultaPago);
+    SwalAlert(data).then(() => {
+      $("#modal").modal("hide");
+      consultaPago();
+    });
   } else if (!esPagoListo) {
     const alerta = {
       icon: "error",
@@ -302,20 +298,21 @@ function crearBotonRegistro(divTabla, usuario) {
   );
 }
 
-function actulizarBotonCheckout() {
-  const btn = document.getElementById("datos-pago");
-  const actividadesPago = document.querySelector("input[name=pago]");
-  const actividadesPagoRegistro = document.querySelector(
-    "input[name=pago-registro]"
+function actulizarBotonesCheckout() {
+  const btnDatos = document.getElementById("datos-pago");
+  const btnCheckout = document.getElementById("checkout");
+  const tablaCheckout = document.getElementById("Actividades Para Pagar");
+  const tablaActividadesAVencer = document.getElementById(
+    "Actividades Proximas a vencer"
   );
-  const actividadesPagoProceso = document.getElementById("Procesando Pago");
-  btn.classList.remove("d-none");
-  if (actividadesPago != null || actividadesPagoRegistro != null) {
-    btn.textContent = "Actividades a Pagar";
-  } else if (actividadesPagoProceso != null) {
-    btn.textContent = "Datos para Pagar";
-  } else {
-    btn.classList.add("d-none");
+  const tablaProcesandoPago = document.getElementById("Procesando Pago");
+  btnDatos.classList.remove("d-none");
+  btnCheckout.classList.remove("d-none");
+  if (tablaCheckout == null && tablaActividadesAVencer == null) {
+    btnCheckout.classList.add("d-none");
+  }
+  if (tablaProcesandoPago == null) {
+    btnDatos.classList.add("d-none");
   }
 }
 
