@@ -28,12 +28,14 @@ public class FinalizarClase extends HttpServlet {
         Map<String, Object> respuesta = new HashMap<>();
         int idClase = Integer.parseInt(request.getParameter("id_clase"));
         TablaClases consultas = new TablaClases();
-        try{
+        try {
             consultas.finalizarClase(idClase);
             respuesta.put("finalizada", true);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

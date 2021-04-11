@@ -1,11 +1,16 @@
-/* :root{
-    --cliente:yellow;
-    --admin:yellow;
-    --instructor:yellow;
+*::-webkit-scrollbar {
+  width: 1rem;
 }
-.color{
-    background-color: var(--cliente);
-} */
+
+*::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #343a40;
+  outline: none;
+  border-radius: 10px;
+}
 caption {
   caption-side: top;
 }
@@ -43,6 +48,7 @@ caption {
     rgb(243, 243, 242)
   ); */
   background-color: rgb(253, 193, 7, 0.8);
+  z-index: 2000;
   border-radius: 5px;
 }
 .dropdown-item:hover {
@@ -140,6 +146,17 @@ body {
     rgb(230, 224, 224),
     rgb(243, 243, 242)
   );
+}
+.btn-black {
+  background-color: #000 !important;
+  color: #fff;
+}
+.btn:hover {
+  color: #e9e5e5;
+  text-decoration: none;
+}
+.modal-content {
+  background-color: #eae6e6;
 }
 /* MAIN CONTENT */
 

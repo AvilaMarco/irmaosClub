@@ -6,18 +6,25 @@ const $btnUsuariosHorarios = document.getElementById("UsuariosHorarios");
 const $btnDineroPorMes = document.getElementById("dinero-por-mes");
 const $btnUsuarios = document.getElementById("btnUsuarios");
 const $btnCrearUsuario = document.getElementById("btn-crear-usuario");
+const $btnListaActividades = document.getElementById("btn-lista-actividades");
 // Acciones para la lista de Usuarios
 const btnAccionEditar = document.getElementById("accion-edit");
 const btnAccionDelete = document.getElementById("accion-delete");
 const btnDatosPago = document.getElementById("accion-pagar");
 const btnAccionResetPassword = document.getElementById("accion-reset-password");
-
+// Acciones Crud actividades
+const $btnCrearActividad = document.getElementById("btn-crear-actividad");
+const $btnEditarActividad = document.getElementById("accion-edit-actividad");
 //Eventos
 $btnUsuariosActividad.addEventListener("click", cantidadUsuariosPorActividad);
 $btnUsuariosHorarios.addEventListener("click", cantidadUsuariosPorHorarios);
 $btnDineroPorMes.addEventListener("click", traerDineroPorMes);
 $btnUsuarios.addEventListener("click", listaUsuarios);
 $btnCrearUsuario.addEventListener("click", crearFormularioUsuario);
+$btnListaActividades.addEventListener("click", mostrarListaActividades);
+// Acciones Crud Actividades
+$btnCrearActividad.addEventListener("click", mostrarFormularioActividad);
+$btnEditarActividad.addEventListener("click", editarActividad);
 // Acciones para la lista de Usuarios
 btnAccionEditar.addEventListener("click", editarUsuario);
 btnAccionDelete.addEventListener("click", eliminarUsuario);
@@ -26,10 +33,93 @@ btnAccionResetPassword.addEventListener("click", () =>
   resetPassword(usuarioAModificar.id)
 );
 
+/* CRUD DE ACTIVIDADES */
+async function editarActividad() {
+  const formulario = new FormData();
+  formulario.append("actividad", JSON.stringify(obtenerDatos()));
+  const config = {
+    method: "PUT",
+    body: formulario,
+    header: { "Content-Type": "application/x-www-form-urlencoded" },
+  };
+  const data = await fetchData("/crudactividades/editActividad", config);
+  SwalAlert(data).then(() => {
+    $("#modalAdmin").modal("hide");
+    mostrarListaActividades();
+  });
+}
+
+async function mostrarFormularioActividad() {
+  clearInformacion();
+  const actividades = await fetchData("/crudactividades/listaActividades");
+  $informacion.innerHTML = formularioCrearActividad();
+  setToggleActiveDays();
+  setToggleCreateAcitividad();
+  setOptionActividades(actividades);
+  setEventCrearActividad(crearActividad);
+}
+
+async function crearActividad() {
+  const actividad = obtenerActividad();
+  if ("string" === typeof actividad) {
+    errorAlert(actividad);
+  } else {
+    const formulario = new FormData();
+    formulario.append("actividad", JSON.stringify(actividad));
+    const config = {
+      method: "POST",
+      body: formulario,
+      header: { "Content-Type": "application/x-www-form-urlencoded" },
+    };
+    const data = await fetchData("/crudactividades/creaarActividad", config);
+    SwalAlert(data);
+  }
+}
+
+async function mostrarListaActividades() {
+  const actividades = await fetchData("/crudactividades/listaActividadesData");
+  clearInformacion();
+  $informacion.innerHTML = createTableHTML(actividades, ["edit"], {
+    titulo: "Lista Actividades",
+    color: "info",
+  });
+  const tabla = document.getElementById("Lista Actividades");
+  tabla.addEventListener("click", handlerCrudActividades);
+}
+
+async function handlerCrudActividades(e) {
+  const element = e.target;
+  const modal = document.getElementById("modalAdmin");
+  const modalTitle = document.querySelector(".modal-title");
+  const modalBody = document.querySelector(".modal-body");
+  if (element.classList.contains("fa-edit")) {
+    clearModal();
+    MostrarBtnAccion("accion-edit-actividad");
+    const actividadData = JSON.parse(element.dataset.actividad);
+    const instructores = await fetchData("/crudactividades/listaInstructores");
+    modal.firstElementChild.classList.add("width-edit-form");
+    modalTitle.innerHTML = "Crud Actividades";
+    modalBody.innerHTML = formEditarActividad(actividadData, instructores);
+    setToggleActiveDays();
+    // mostrar modal
+    $("#modalAdmin").modal();
+  }
+}
+
 /* Lista de Usuarios */
 async function listaUsuarios() {
   const json = await fetchData("usuarios");
   usuariosData = json.usuarios;
+  let ordenTitularFamiliar = [];
+  usuariosData.forEach((user) => {
+    if (ordenTitularFamiliar.findIndex((e) => e.id === user.id) === -1) {
+      ordenTitularFamiliar.push(user);
+    }
+
+    const familiares = usuariosData.filter((f) => f.id_titular === user.id);
+    ordenTitularFamiliar = ordenTitularFamiliar.concat(familiares);
+  });
+  usuariosData = ordenTitularFamiliar;
   clearInformacion();
   $informacion.innerHTML = createTableHTML(usuariosData, [
     "fa-user-edit",
@@ -95,11 +185,10 @@ async function haddlerListaUsuarios(event) {
   const modalBody = document.querySelector(".modal-body");
   if (element.classList.contains("fa-user-edit")) {
     //editar usuario
-    clearModal();
     MostrarBtnAccion("accion-edit");
-    modal.firstElementChild.classList.add("width-edit-form");
     usuarioAModificar = usuariosData.find((e) => e.id == element.id);
-
+    clearModal();
+    modal.firstElementChild.classList.add("width-edit-form");
     modalTitle.innerHTML = "Editar Usuario";
     modalBody.innerHTML = crearFormularioRegistro(null, usuarioAModificar);
     // mostrar modal
@@ -120,14 +209,13 @@ async function haddlerListaUsuarios(event) {
     `;
     // mostrar modal
     $("#modalAdmin").modal();
-  } else if (element.classList.contains("fa-money-check-alt")) {
+  } else if (
+    element.classList.contains("fa-money-check-alt") &&
+    !element.classList.contains("text-secondary")
+  ) {
     //pagar actividades de usuario
     clearModal();
     usuarioAModificar = usuariosData.find((e) => e.id == element.id);
-    const tablaProcesandoPago = document.getElementById("Procesando Pago");
-    if (tablaProcesandoPago != null) {
-      MostrarBtnAccion("accion-pagar");
-    }
     const tablasActividades = await tablasPago(usuarioAModificar, true);
     const divBotones = document.createElement("DIV");
     let contenidoBotonesHTML = "";
@@ -142,6 +230,10 @@ async function haddlerListaUsuarios(event) {
 
     modalBody.appendChild(tablasActividades);
     modalBody.appendChild(divBotones);
+
+    if (document.getElementById("Procesando Pago") != null) {
+      MostrarBtnAccion("accion-pagar");
+    }
 
     selectByRow();
     //agregar eventos
@@ -182,11 +274,7 @@ async function editarUsuario() {
   };
   fetchData("updateuser", config).then((data) => {
     usuarioAModificar = {};
-    swal({
-      title: data.titulo,
-      text: data.mensaje,
-      icon: "success",
-    }).then(() => $("#modalAdmin").modal("hide"));
+    SwalAlert(data).then(() => $("#modalAdmin").modal("hide"));
   });
 }
 
@@ -194,11 +282,7 @@ function eliminarUsuario() {
   fetchData(`banearuser?id=${usuarioAModificar.id}`, { method: "PUT" }).then(
     (data) => {
       usuarioAModificar = {};
-      swal({
-        title: data.titulo,
-        text: data.mensaje,
-        icon: "success",
-      }).then(() => $("#modalAdmin").modal("hide"));
+      SwalAlert(data).then(() => $("#modalAdmin").modal("hide"));
     }
   );
 }
@@ -228,6 +312,7 @@ function clearModal() {
   const btnDelete = document.getElementById("accion-delete");
   const btnPgar = document.getElementById("accion-pagar");
   const btnReset = document.getElementById("accion-reset-password");
+  const btnEditActividad = document.getElementById("accion-edit-actividad");
   modal.firstElementChild.classList.remove("width-edit-form");
   modal.querySelector(".modal-title").innerHTML = "";
   modal.querySelector(".modal-body").innerHTML = "";
@@ -236,6 +321,7 @@ function clearModal() {
   btnDelete.classList.add("d-none");
   btnPgar.classList.add("d-none");
   btnReset.classList.add("d-none");
+  btnEditActividad.classList.add("d-none");
 }
 
 function MostrarBtnAccion(btn) {

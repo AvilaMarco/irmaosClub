@@ -51,6 +51,7 @@
         <div class="dropdown-divider border-dark"></div>
         <div class="list-group list-group-flush w-100">
           <!-- dashboard -->
+          <!-- Datos -->
           <div data-toggle="collapse" data-target="#btn-dashboard">
             <button
               class="list-group-item list-group-item-action bg-warning btn-sidebar"
@@ -70,7 +71,7 @@
               # Dinero Por Mes
             </button>
           </div>
-          <!-- clientes -->
+          <!-- clientes Start -->
           <div data-toggle="collapse" data-target="#btn-clientes">
             <button
               class="list-group-item list-group-item-action bg-warning btn-sidebar"
@@ -81,42 +82,44 @@
           </div>
           <div id="btn-clientes" class="collapse">
             <button class="dropdown-item" id="btn-crear-usuario">
-              Crear Usuario
+              Crear Cliente
             </button>
             <button class="dropdown-item" id="btnUsuarios">
-              Lista Usuarios
+              Lista Clientes
             </button>
           </div>
+          <!-- clientes END -->
+          <!-- Crud Actividades Start -->
+          <div data-toggle="collapse" data-target="#btn-crud-actividades">
+            <button
+              class="list-group-item list-group-item-action bg-warning btn-sidebar"
+            >
+              <i class="fas fa-dumbbell nav-icon"></i>
+              <p>Actividades</p>
+            </button>
+          </div>
+          <div id="btn-crud-actividades" class="collapse">
+            <button class="dropdown-item" id="btn-lista-actividades">
+              Lista Actividades
+            </button>
+            <button class="dropdown-item" id="btn-crear-actividad">
+              Crear Actividad
+            </button>
+          </div>
+          <!-- Crud Actividades End -->
           <a
             href="#"
-            class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-address-card nav-icon"></i>
-            <p>Membresia</p></a
+            class="list-group-item list-group-item-action bg-warning btn-sidebar disabled"
           >
+            <i class="fas fa-fist-raised nav-icon"></i>
+            <p>Asistencia</p>
+          </a>
           <a
             href="#"
-            class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-dollar-sign nav-icon"></i>
-            <p>Pago</p></a
-          >
-          <a
-            href="#"
-            class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-fist-raised nav-icon"></i>
-            <p>Asistencia</p></a
-          >
-          <a
-            href="#"
-            class="list-group-item list-group-item-action bg-warning btn-sidebar"
-            ><i class="fas fa-dumbbell nav-icon"></i>
-            <p>Rutinas</p></a
-          >
-          <a
-            href="#"
-            class="list-group-item list-group-item-action bg-warning btn-sidebar"
+            class="list-group-item list-group-item-action bg-warning btn-sidebar disabled"
           >
             <i class="fas fa-project-diagram nav-icon"></i>
-            <p>Planes</p>
+            <p>Rutinas</p>
           </a>
         </div>
       </div>
@@ -165,6 +168,13 @@
                 id="accion-reset-password"
               >
                 Reset Contraseña
+              </button>
+              <button
+                type="button"
+                class="btn btn-success d-none"
+                id="accion-edit-actividad"
+              >
+                Editar Actividad
               </button>
               <button type="button" class="btn btn-danger" data-dismiss="modal">
                 Cancelar
@@ -225,6 +235,8 @@
     <script src="../js/admin_chart.js"></script>
     <script src="../js/dashboard.js"></script>
     <script src="../js/templates/crearFormRegistro.js"></script>
+    <script src="../js/templates/formularioCrearActividad.js"></script>
+    <script src="../js/templates/formularioEditarActividad.js"></script>
     <script src="../js/dashboard_admin.js"></script>
   </body>
 </html>

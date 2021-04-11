@@ -8,7 +8,7 @@ function tarjetaUser(usuario) {
       <div class="card-body text-dark text-center">
         <!-- datos Usuario -->
         <fieldset class="datos">
-          <legend>Datos Personales</legend>
+          <legend class="h2 font-weight-bold">Datos Personales</legend>
           <ul class="list-group list-group-flush">
             <li class="list-group-item">
               Nombre: ${usuario.apellidos} ${usuario.nombres}
@@ -21,7 +21,7 @@ function tarjetaUser(usuario) {
         </fieldset>
         <!-- actividades -->
         <fieldset class="actividades p-3 my-3">
-          <legend>Actividades</legend>
+          <legend class="h2 font-weight-bold">Actividades</legend>
         ${
           usuario.actividades
             ? usuario.actividades.reduce(
@@ -33,9 +33,13 @@ function tarjetaUser(usuario) {
                 </div>`
         }
         </fieldset>
-        <a href="#" class="btn btn-dark agregarActividad" data-user='${JSON.stringify(
-          usuario
-        )}'>Agregar nueva actividad</a>
+        ${
+          user.id_titular
+            ? ""
+            : `<a href="#" class="btn btn-dark agregarActividad" data-user='${JSON.stringify(
+                usuario
+              )}'>Agregar nueva actividad</a>`
+        }
       </div>
     </div>
     `;

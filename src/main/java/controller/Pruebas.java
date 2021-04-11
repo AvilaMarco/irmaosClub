@@ -28,24 +28,7 @@ public class Pruebas extends HttpServlet {
         Map<String, Object> respuesta = new HashMap();
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-        respuesta.put("nice", "gg");
-        respuesta.put("id", id);
-        respuesta.put("asdf", request.getParameterMap());
-        respuesta.put("asdf 3", request.getParameterMap().values());
         out.print(gson.toJson(respuesta));
-        //fechas 
-        LocalDate f1 = LocalDate.of(2021, 1, 15);
-        LocalDate f2 = LocalDate.of(2021, 1, 19);
-        LocalDate f3 = LocalDate.of(2021, 1, 2);
-        String fecha = "";
-        if (f1.isBefore(f2) && f1.isBefore(f3)) {
-            fecha = f1.toString();
-        } else if (f2.isBefore(f3)) {
-            fecha = f2.toString();
-        } else {
-            fecha = f3.toString();
-        }
-        System.out.println("el mas chico es:" + fecha);
     }
 
     @Override

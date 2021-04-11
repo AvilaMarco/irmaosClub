@@ -20,7 +20,7 @@ public class ListaUsuarios extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        TablaUsuarios consultasUsuarios = new TablaUsuarios();
+        TablaUsuarios consultas = new TablaUsuarios();
         Gson gson = new Gson();
         Map<String, Object> result = new HashMap();
         ArrayList<Usuario> usuarios = null;
@@ -28,7 +28,7 @@ public class ListaUsuarios extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         try {
-            usuarios = consultasUsuarios.getUsers();
+            usuarios = consultas.getUsers();
             for (Usuario usuario : usuarios) {
                 listaUsuarios.add(usuario.getCompleteData());
             }
@@ -37,5 +37,7 @@ public class ListaUsuarios extends HttpServlet {
             error.printStackTrace();
         }
         out.print(gson.toJson(result));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

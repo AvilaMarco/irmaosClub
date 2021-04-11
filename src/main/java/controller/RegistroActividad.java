@@ -50,7 +50,7 @@ public class RegistroActividad extends HttpServlet {
                 consultasActividades.anotarUsuarioActividades(id_menbresia, actividades);
                 respuesta.put("icon", "success");
                 respuesta.put("title", "Felicidades");
-                respuesta.put("text", "Registro de actividad correcto");                
+                respuesta.put("text", "Registro de actividad correcto");
             } else {
                 respuesta.put("icon", "error");
                 respuesta.put("title", "Oops...");
@@ -60,6 +60,9 @@ public class RegistroActividad extends HttpServlet {
             Logger.getLogger(RegistroActividad.class.getName()).log(Level.SEVERE, null, ex);
         }
         out.print(gson.toJson(respuesta));
+        consultasActividades.cerrarConexion();
+        consultasUsuarios.cerrarConexion();
+        out.close();
     }
 
 }

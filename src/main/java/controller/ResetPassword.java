@@ -36,6 +36,8 @@ public class ResetPassword extends HttpServlet {
             Logger.getLogger(ResetPassword.class.getName()).log(Level.SEVERE, null, ex);
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 
 }

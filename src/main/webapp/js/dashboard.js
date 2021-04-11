@@ -5,9 +5,15 @@ let user = {};
 /* Fetch Data */
 function fetchData(url, config) {
   return fetch(`../${url}`, config ? config : { method: "GET" })
-    .then((data) => (data.redirected ? location.assign(data.url) : data.json()))
+    .then((res) => {
+      if (res.ok) {
+        return res.redirected ? location.assign(res.url) : res.json();
+      } else {
+        throw new Error(res);
+      }
+    })
     .then((json) => json)
-    .catch((err) => console.log(err));
+    .catch((err) => console.log("err", err));
 }
 
 async function resetPassword(id, password = "1234") {
@@ -30,22 +36,41 @@ function SwalAlert(alert) {
   });
 }
 
+function errorAlert(mensaje) {
+  const data = {
+    icon: "error",
+    title: "Oops...",
+    text: mensaje,
+  };
+  return SwalAlert(data);
+}
+
+function successAlert(mensaje) {
+  const data = {
+    icon: "success",
+    title: "Felicitaciones!",
+    text: mensaje,
+  };
+  return SwalAlert(data);
+}
+
 async function crearUsuario(e) {
   e.preventDefault();
   let inputs = Array.from(document.querySelectorAll("input[required]"));
+  const correo = document.querySelector("input[name=email]").value;
   if (inputs.some((e) => e.value == "")) {
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "Complete todos los campos",
-    });
+    errorAlert("Complete todos los campos");
+    return;
+  }
+  if (!emailValido(correo)) {
+    errorAlert("Email invalido");
     return;
   }
   const frm = document.getElementById("formulario-general");
   const formulario = new FormData(frm);
   const url = location.pathname.split("/");
   const page = url[url.length - 1];
-  const pageAdmin = "dashboard_admin.html";
+  const pageRegister = "register.html";
   const pageClient = "dashboard_cliente.html";
   if (page === pageClient) {
     formulario.append("id_titular", user.id);
@@ -56,20 +81,27 @@ async function crearUsuario(e) {
     header: { "Content-Type": "application/x-www-form-urlencoded" },
   };
   const data = await fetchData("createuser", config);
-  if (page === pageAdmin) {
-    SwalAlert(data);
+  const error = data.icon === "error";
+  if (page === pageRegister) {
+    SwalAlert(data).then(() => (!error ? location.assign("login.html") : null));
   } else if (page === pageClient) {
-    SwalAlert(data).then(() => actividadesFamiliares());
+    SwalAlert(data).then(() => (!error ? actividadesFamiliares() : null));
   } else {
-    SwalAlert(data).then(() => location.assign("login.html"));
+    SwalAlert(data);
+    frm.reset();
   }
+}
+
+function emailValido(email) {
+  const exp = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+  return exp.test(email);
 }
 
 async function setInfoUser() {
   user = await fetchData("getinfouser");
 }
 
-function createTableHTML(array, camposExtra = [], titular) {
+function createTableHTML(array, camposExtra = [], optionsExtra) {
   let header = "";
   let body = "";
   let campos = camposExtra;
@@ -77,7 +109,7 @@ function createTableHTML(array, camposExtra = [], titular) {
   let id =
     camposExtra?.[0] == "fa-user-edit"
       ? "listaUsuarios"
-      : titular?.titulo ?? "table";
+      : optionsExtra?.titulo ?? "table";
   /* Header */
   for (const key in array[0]) {
     campos.push(key);
@@ -91,7 +123,9 @@ function createTableHTML(array, camposExtra = [], titular) {
       e == "pago-proceso"
         ? ""
         : e;
-    header += `<th class="sticky-top">${thName}</th>`;
+    header += `<th class="sticky-top">
+      ${capitalize(normalize(filtroIconos(thName)))}
+    </th>`;
   });
   /* Body */
   array.forEach((e) => {
@@ -102,10 +136,19 @@ function createTableHTML(array, camposExtra = [], titular) {
           switch (campo) {
             case "fa-user-edit":
             case "fa-user-times":
-            case "fa-money-check-alt":
             case "fa-unlock-alt":
               fila += `
                 <i id="${e.id}" class="fas ${campo} fa-2x" role="button"></i>`;
+              break;
+            case "fa-money-check-alt":
+              fila += `
+                <i 
+                  id="${e.id}" 
+                  class="fas ${campo} fa-2x 
+                    ${e.id_titular ? "text-secondary" : ""}" 
+                  ${e.id_titular ? "" : `role="button"`}
+                >
+                </i>`;
               break;
             case "pago":
             case "pago-registro":
@@ -117,6 +160,16 @@ function createTableHTML(array, camposExtra = [], titular) {
                   value='${JSON.stringify(e)}' 
                   name="${campo}"
                 >`;
+              break;
+            case "edit":
+              fila += `
+                  <i data-actividad='${JSON.stringify(
+                    e
+                  )}' class="fas fa-edit fa-2x" role="button"></i>`;
+              break;
+            case "fecha_registro":
+            case "fecha vencimiento":
+              fila += `${filtroFecha(e[campo])}`;
               break;
             default:
               fila += `${e[campo]}`;
@@ -130,10 +183,10 @@ function createTableHTML(array, camposExtra = [], titular) {
   const table = `
       <table class="table table-hover" id="${id}">
       ${
-        titular
+        optionsExtra
           ? `
-        <caption class="bg-${titular.color} h5 text-center font-weight-bold text-white m-0">
-          ${titular.titulo}
+        <caption class="bg-${optionsExtra.color} h5 text-center font-weight-bold text-white m-0">
+          ${optionsExtra.titulo}
         </caption>
         `
           : ""
@@ -159,7 +212,6 @@ async function tablasPago(usuario, isAdmin) {
   const data = await fetchData(
     `checkout?id_usuario=${usuario.id}&isAdmin=${isAdmin}`
   );
-  // debugger;
   const tablasActividades = document.createElement("DIV");
   let contenidoTablasHTML = "";
   for (let i = 0; i < data.length; i++) {
@@ -167,7 +219,7 @@ async function tablasPago(usuario, isAdmin) {
     if (infoActividad.actividades.length > 0) {
       if (infoActividad.titulo == "Procesando Pago") {
         user.pagoTotal = infoActividad.actividades.reduce(
-          (acc, e) => acc + e.unitPrice,
+          (acc, e) => acc + e.precio,
           0
         );
       }
@@ -288,40 +340,37 @@ function traducirDia(day) {
   return dia;
 }
 
-/* IMPLEMENTAR A FUTURO, POR AHORA NO SIRVE */
-let idClase;
+function capitalize(str) {
+  const palabras = str.split(" ");
+  const palabrasCapitalize = palabras.map(
+    (palabra) => palabra.charAt(0).toUpperCase() + palabra.substr(1)
+  );
+  return palabrasCapitalize.join(" ");
+}
 
-function usuariosPagos() {
-  const bodyTable = document.getElementById("usuarios_pagos");
-  fetch("../usuariospagos")
-    .then((data) => data.json())
-    .then((json) => {
-      const listaUsuariosPagos = json.lista_usuarios_pagos;
-      for (let i = 0; i < listaUsuariosPagos.length; i++) {
-        bodyTable.innerHTML += `
-                                        <tr>
-                                            <td>${
-                                              listaUsuariosPagos[i].apellidos
-                                            }</td>
-                                            <td>${
-                                              listaUsuariosPagos[i].nombres
-                                            }</td>
-                                            <td>${
-                                              listaUsuariosPagos[i].email
-                                            }</td>
-                                            <td>${
-                                              listaUsuariosPagos[i].tiene_pago
-                                                ? "Si"
-                                                : "No"
-                                            }</td>
-                                            <td>${
-                                              listaUsuariosPagos[i].fecha_pago
-                                                ? listaUsuariosPagos[i]
-                                                    .fecha_pago
-                                                : "No Pago"
-                                            }</td>
-                                        </tr>
-                                    `;
-      }
-    });
+function normalize(str) {
+  return str.split("_").join(" ");
+}
+
+function filtroFecha(datetime) {
+  const fechaAAMMDD = datetime.split(" ")[0];
+  const listaFechaAAMMDD = fechaAAMMDD.split("-");
+  const listaFechaDDMMAA = listaFechaAAMMDD.reverse();
+  const fechaDDMMAA = listaFechaDDMMAA.join("-");
+  return fechaDDMMAA;
+}
+
+function filtroIconos(classIcono) {
+  switch (classIcono) {
+    case "fa-unlock-alt":
+      return "Reiniciar Contraseña";
+    case "fa-money-check-alt":
+      return "Registrar Pago";
+    case "fa-user-times":
+      return "Banear Usuario";
+    case "fa-user-edit":
+      return "Editar Usuario";
+    default:
+      return classIcono;
+  }
 }

@@ -31,5 +31,7 @@ public class ActividadesHorarios extends HttpServlet {
             e.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

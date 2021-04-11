@@ -1,8 +1,50 @@
-.dropdown-item:focus, .dropdown-item:hover {
-    color: #ffc107;
-    text-decoration: none;
-    background-color: #495057;
+.dropdown-item:focus,
+.dropdown-item:hover {
+  color: #ffc107;
+  text-decoration: none;
+  background-color: #495057;
 }
-.width-edit-form{
-    max-width: 50vw;
+.width-edit-form {
+  max-width: 50vw;
+}
+
+.card-dia {
+  padding: 26px;
+  border-radius: 50%;
+  background: #181818;
+  position: relative;
+  width: 70px;
+  height: 70px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border: solid #33a2d9; */
+  color: #939393;
+  /* color: #33a2d9;*/
+}
+.content-semana {
+  display: flex;
+  gap: 10px;
+}
+.card-dia input {
+  display: none;
+}
+.content-day-active {
+  border: solid 3px var(--warning);
+}
+.content-day-active span {
+  color: var(--warning);
+  font-size: 1.5rem;
+}
+.fa-user-edit:hover {
+  color: var(--teal);
+}
+.fa-user-times:hover {
+  color: var(--orange);
+}
+.fa-money-check-alt:hover {
+  color: var(--cyan);
+}
+.fa-unlock-alt:hover {
+  color: var(--primary);
 }

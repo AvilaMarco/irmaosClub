@@ -31,7 +31,7 @@ public class Familiares extends HttpServlet {
         ArrayList<Integer> idFamiliares = new ArrayList<>();
         ArrayList<Map<String, Object>> familiares = new ArrayList<>();
         try {
-           idFamiliares = consultas.getIdFamiliares(id);
+            idFamiliares = consultas.getIdFamiliares(id);
             for (Integer idFamiliar : idFamiliares) {
                 Map<String, Object> familiar = consultas.tarjetaUsuario(idFamiliar);
                 familiares.add(familiar);
@@ -40,5 +40,7 @@ public class Familiares extends HttpServlet {
             Logger.getLogger(Familiares.class.getName()).log(Level.SEVERE, null, ex);
         }
         out.print(gson.toJson(familiares));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

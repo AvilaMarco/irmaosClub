@@ -39,6 +39,8 @@ public class Dashboard_dineroPorMes extends HttpServlet {
             Logger.getLogger(Dashboard_dineroPorMes.class.getName()).log(Level.SEVERE, null, ex);
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 
 }

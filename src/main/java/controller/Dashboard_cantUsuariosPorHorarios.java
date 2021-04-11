@@ -29,6 +29,8 @@ public class Dashboard_cantUsuariosPorHorarios extends HttpServlet {
             usuariosHorarios = consultas.cantidadUsuariosPorHorarios();
             respuesta.put("lista_usuarios_horarios", usuariosHorarios);
             out.print(gson.toJson(respuesta));
+            consultas.cerrarConexion();
+            out.close();
         }catch(SQLException error){
             error.printStackTrace();
         }

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,10 +30,10 @@ public class InfoUser extends HttpServlet {
         Usuario user = (Usuario) session.getAttribute("UserData");
         respuesta = user.getCompleteData();
         TablaUsuarios consultas = new TablaUsuarios();
-        if(user.getRol() == 2){
+        if (user.getRol() == 2) {
             Map<String, Object> actividad = (Map<String, Object>) session.getAttribute("ActividadData");
             respuesta.put("actividad", actividad);
-        }else if(user.getRol() == 1){
+        } else if (user.getRol() == 1) {
             try {
                 int menbresia = consultas.getMenbresia(user.getId_usuario());
                 ArrayList<Map<String, Object>> actividades = consultas.tarjetaActividades(menbresia);
@@ -44,5 +43,7 @@ public class InfoUser extends HttpServlet {
             }
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

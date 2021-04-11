@@ -33,5 +33,7 @@ public class UserDelete extends HttpServlet {
             e.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

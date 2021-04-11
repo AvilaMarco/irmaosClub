@@ -61,10 +61,13 @@ public class CheckoutMercadoPago extends HttpServlet {
             ex.printStackTrace();
             Logger.getLogger(CheckoutMercadoPago.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        consultasUsuarios.cerrarConexion();
+        consultasActividades.cerrarConexion();
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         out.print(gson.toJson(respuesta));
+        consultasPagos.cerrarConexion();
+        out.close();
     }
 
     public Preference completarPreference(Preference preference, Usuario user, int id_menbresia, float precioTotal) {

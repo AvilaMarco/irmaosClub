@@ -20,16 +20,16 @@ public class CrearClaseActividad extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {        
         int idActividad = Integer.parseInt(request.getParameter("id_actividad"));
-        String dia = request.getParameter("dia");
+        int idHorario = Integer.parseInt(request.getParameter("id_horario"));
         TablaClases consultas = new TablaClases();
         Map<String, Object> respuesta = new HashMap<>();
         ArrayList<Map<String, Object>> lista = new ArrayList<>();
         Gson gson = new Gson();
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
-        int idHorario = 0;
+//        int idHorario = 0;
         try {
-            idHorario = consultas.obtenerIdHorario(idActividad, dia);
+//            idHorario = consultas.obtenerIdHorario(idActividad, dia);
             respuesta.put("id_clase", consultas.crearClase(idActividad, idHorario));
             respuesta.put("alumnos", consultas.alumnosClase(idActividad, idHorario));
             respuesta.put("ausentes", lista);
@@ -38,5 +38,7 @@ public class CrearClaseActividad extends HttpServlet {
             error.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

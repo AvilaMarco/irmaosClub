@@ -43,7 +43,7 @@ function _btnsTomarLista() {
 function _btnCrearClase() {
   const btn = document.getElementById("btn-crear-clase");
   btn?.addEventListener("click", () =>
-    crearClase(user.actividad.id_actividad, dia)
+    crearClase(user.actividad.id_actividad, user.actividad.id_horario)
   );
 }
 
@@ -54,7 +54,7 @@ async function tomarLista() {
   const presentes = Array.from(
     document.querySelectorAll("input[name*=presente]:checked")
   );
-  const presentesID = presentes.map((e) => JSON.parse(e.value).id);
+  const presentesID = presentes.map((e) => JSON.parse(e.value).id_usuario);
 
   const formulario = new FormData();
   formulario.append("id_clase", infoClase.id_clase);
@@ -71,20 +71,23 @@ async function tomarLista() {
   filtrarAlumnos(data);
   HTMLlistaAsistencia(infoClase.ausentes, infoClase.presentes);
 }
-async function crearClase(id, dia) {
-  infoClase = await fetchData(`crearclase?id_actividad=${id}&dia=${dia}`, {
-    method: "POST",
-  });
+async function crearClase(id, idHorario) {
+  infoClase = await fetchData(
+    `crearclase?id_actividad=${id}&id_horario=${idHorario}`,
+    {
+      method: "POST",
+    }
+  );
   quitarbtnCrearClase();
   HTMLlistaAsistencia(infoClase.alumnos);
 }
 
 async function finalizarClase() {
-  const data = await fetchData(`terminarclase?id_clase=${infoClase.id_clase}`, {
+  await fetchData(`terminarclase?id_clase=${infoClase.id_clase}`, {
     method: "PUT",
   });
-  //sweet alert
-  console.log(data);
+  successAlert("Clase Finalizada");
+  clearInformacion();
 }
 /* (End) Setear Data en Servidor */
 

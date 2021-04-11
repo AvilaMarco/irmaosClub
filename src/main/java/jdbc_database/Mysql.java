@@ -3,9 +3,12 @@ package jdbc_database;
 import java.sql.*;
 
 public class Mysql {
-    private String url = "jdbc:mysql://localhost:3306/db_gym";
+//    private String url = "jdbc:mysql://localhost:3306/dbgym";
+//    private String user = "root";
+//    private String password = "password";
+    private String url = "jdbc:mysql://localhost:3306/dbgym";
     private String user = "root";
-    private String password = "";
+    private String password = "password";
     private Connection conexion= null;
     
     public Mysql(){

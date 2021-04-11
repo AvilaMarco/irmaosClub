@@ -22,15 +22,16 @@ public class DashBoard_cantUsuariosActivos extends HttpServlet {
         TablaUsuarios consultas = new TablaUsuarios();
         int cantidadUsuariosOn = 0;
         Map<String, Object> respuesta = new HashMap<>();
-        try{
+        try {
             cantidadUsuariosOn = consultas.cantUsuariosActivos();
-        }catch(SQLException error){
+        } catch (SQLException error) {
             error.printStackTrace();
         }
         respuesta.put("cantidad_usuarios_activos", cantidadUsuariosOn);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         out.print(gson.toJson(respuesta));
-    }    
+        consultas.cerrarConexion();
+        out.close();
+    }
 }
-

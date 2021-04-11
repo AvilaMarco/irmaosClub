@@ -1,14 +1,26 @@
 //al iniciar la pagina
 window.onload = async () => {
   await setInfoUser();
-  if (!user.actividades || user.actividades.length == 0) {
+  const noTieneActividades = !user.actividades || user.actividades.length == 0;
+  const esTitular = !user.id_titular;
+  if (noTieneActividades && esTitular) {
     ActividadesHorarios(user);
+  }
+  const $btnPago = document.getElementById("btn-pago");
+  if (esTitular) {
+    $btnPago.addEventListener("click", consultaPago);
+  } else {
+    $btnPago.classList.add("disabled");
+    const toggle = document.querySelector("[data-target='#btn-clientes']");
+    toggle.dataset.toggle = "";
+    const btn = toggle.querySelector("button");
+    btn.classList.add("disabled");
   }
 };
 const DATOS_PAGO = {
   CBU: "0170272140000003562859",
   ALIAS: "FAIXA.PRETA.BJJ",
-  EMAIL: "pruebas@cambiar.com",
+  EMAIL: "pagosirmaosclub@gmail.com",
   TITULAR: "OLIVERA FERNANDO JAVIER",
   CUIT: "20305026957",
 };
@@ -19,13 +31,13 @@ const $btnActividadesFamiliares = document.getElementById(
   "btn-actividades-familiares"
 );
 const $btnMenbresia = document.getElementById("data-user");
-const $btnPago = document.getElementById("btn-pago");
+const $btnCuentaMenbresia = document.getElementById("cuenta-membresia");
 
 //eventos
 $btnFormRegistro.addEventListener("click", formRegistroFamiliar);
 $btnActividadesFamiliares.addEventListener("click", actividadesFamiliares);
 $btnMenbresia.addEventListener("click", mostrarMenbresia);
-$btnPago.addEventListener("click", consultaPago);
+$btnCuentaMenbresia.addEventListener("click", mostrarMenbresia);
 
 function mostrarMenbresia() {
   clearInformacion();
@@ -38,12 +50,21 @@ function mostrarMenbresia() {
 
 async function ActividadesHorarios(usuario) {
   const data = await fetchData("actividadeshorarios");
-  const actividades = data.filter(
+  const actividadesUsuario = usuario.actividades || [];
+  let actividades = data.filter(
     (a) =>
-      !user.actividades.some(
-        (au) => a.hora == au.hora && a["nombre actividad"] == au.nombre
+      !actividadesUsuario.some(
+        (au) => a.hora == au.hora && a.nombre == au.nombre
       )
   );
+  const actividadBjj = actividadesUsuario.find(
+    (e) => e.nombre.indexOf("BJJ") >= 0
+  );
+  if (actividadBjj) {
+    actividades = actividades.filter(
+      (e) => e.nombre == actividadBjj.nombre || e.nombre.indexOf("BJJ") == -1
+    );
+  }
   clearInformacion();
   const divTabla = document.createElement("DIV");
   const divDataUser = document.createElement("DIV");
@@ -56,6 +77,32 @@ async function ActividadesHorarios(usuario) {
   divScroll.innerHTML = createTableHTML(actividades, ["actividad deseada"]);
   crearBotonRegistro(divTabla, usuario);
   selectByRow();
+  const tbody = document.getElementById("select-by-row");
+  tbody.addEventListener("click", bloquearBjjRepetidos);
+}
+
+function bloquearBjjRepetidos(e) {
+  const inputsCheckedHTML = Array.from(
+    document.querySelectorAll("[name='actividad deseada']:checked")
+  );
+  const inputsNoCheckedHTML = Array.from(
+    document.querySelectorAll("[name='actividad deseada']")
+  );
+  const inputsChecked = inputsCheckedHTML.map((e) => JSON.parse(e.value));
+  const bjjChecked = inputsChecked.find((e) => e.nombre.indexOf("BJJ") >= 0);
+  if (bjjChecked) {
+    inputsNoCheckedHTML.forEach((e) => {
+      const element = JSON.parse(e.value);
+      if (
+        element.nombre != bjjChecked.nombre &&
+        element.nombre.indexOf("BJJ") >= 0
+      ) {
+        e.indeterminate = "true";
+      }
+    });
+  } else {
+    inputsNoCheckedHTML.forEach((e) => (e.indeterminate = false));
+  }
 }
 
 function btnInscripciones() {
@@ -95,7 +142,6 @@ function formRegistroFamiliar() {
 async function actividadesFamiliares() {
   clearInformacion();
   const familiares = await fetchData(`familiares?id_usuario=${user.id}`);
-  console.log(familiares);
   const div = document.createElement("DIV");
   div.classList.add("d-flex", "flex-equals");
   familiares.forEach((f) => {
@@ -146,12 +192,7 @@ function checkoutActividades() {
     objetoActividades.actividadesRegistro
   );
   if (actividades.length == 0) {
-    const alerta = {
-      icon: "error",
-      title: "Oops....",
-      text: "Marque alguna actividad que desea pagar",
-    };
-    SwalAlert(alerta);
+    errorAlert("Marque alguna actividad que desea pagar");
   } else {
     cargarDatosModal(mensajePago(actividades));
     const $btnPagoListo = document.getElementById("pago-listo");
@@ -162,10 +203,11 @@ function checkoutActividades() {
 }
 
 async function registroUsuarioActividad(usuario) {
-  const $inputaData = document.querySelectorAll(
-    "input[name*=actividad]:checked"
+  const $inputaData = Array.from(
+    document.querySelectorAll("input[name*=actividad]:checked")
   );
-  let actividades = Array.from($inputaData).map((e) => JSON.parse(e.value));
+  const inputValids = $inputaData.filter((e) => !e.indeterminate);
+  let actividades = inputValids.map((e) => JSON.parse(e.value));
   actividades = actividades.sort((a, b) =>
     a.nickname.localeCompare(b.nickname)
   );
@@ -227,10 +269,10 @@ function ModalInfoPago() {
 
 function mensajePago(actividades) {
   let textoActividades = actividades.reduce(
-    (acc, e) => acc + `${e.title}  `,
+    (acc, e) => acc + `${e.nombre}  `,
     ""
   );
-  const pagoTotal = actividades.reduce((acc, e) => acc + e.unitPrice, 0);
+  const pagoTotal = actividades.reduce((acc, e) => acc + e.precio, 0);
   user.pagoTotal = pagoTotal;
   return `
   <div>
@@ -265,12 +307,7 @@ async function actividadesPagoListo(actividades) {
       consultaPago();
     });
   } else if (!esPagoListo) {
-    const alerta = {
-      icon: "error",
-      title: "Oops....",
-      text: "Marque la casilla",
-    };
-    SwalAlert(alerta);
+    errorAlert("Marque la casilla");
   }
 }
 
@@ -315,6 +352,8 @@ function actulizarBotonesCheckout() {
     btnDatos.classList.add("d-none");
   }
 }
+
+function ocultarInformacionFamiliar() {}
 
 function createPaymentButton(preferenceId) {
   const script = document.createElement("script");

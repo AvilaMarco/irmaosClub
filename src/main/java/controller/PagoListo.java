@@ -3,14 +3,8 @@ package controller;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.Month;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -37,21 +31,21 @@ public class PagoListo extends HttpServlet {
         ArrayList<Map<String, Object>> actividades = gson.fromJson(strActividades, ArrayList.class);
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
-        TablaActividadesMenbresias consultasMenbresias = new TablaActividadesMenbresias();
+        TablaActividadesMenbresias consultas = new TablaActividadesMenbresias();
 
         try {
             for (Map<String, Object> actividad : actividades) {
                 int id_menbresia = Integer.parseInt((String) actividad.get("id"));
-                String nombreActividad = (String) actividad.get("title");
+                String nombreActividad = (String) actividad.get("nombre");
                 if (nombreActividad.contains("+")) {
                     String[] items = nombreActividad.split(" +");
                     for (String nombre : items) {
                         if (!nombre.equals("+")) {
-                            consultasMenbresias.updatePagoListo(false, id_menbresia, nombre);
+                            consultas.updatePagoListo(false, id_menbresia, nombre);
                         }
                     }
                 } else {
-                    consultasMenbresias.updatePagoListo(false, id_menbresia, nombreActividad);
+                    consultas.updatePagoListo(false, id_menbresia, nombreActividad);
                 }
             }
             respuesta.put("icon", "success");
@@ -61,5 +55,7 @@ public class PagoListo extends HttpServlet {
             Logger.getLogger(PagoListo.class.getName()).log(Level.SEVERE, null, ex);
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

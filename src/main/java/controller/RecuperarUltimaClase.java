@@ -27,18 +27,20 @@ public class RecuperarUltimaClase extends HttpServlet {
         Gson gson = new Gson();
         PrintWriter out = response.getWriter();
         response.setContentType("application/json");
-        try{
-            respuesta = consultas.recuperarUltimaClase(idActividad);  
+        try {
+            respuesta = consultas.recuperarUltimaClase(idActividad);
             System.out.println(respuesta);
-            if(respuesta != null){
+            if (respuesta != null) {
                 alumnos = consultas.alumnosClase(idActividad, (int) respuesta.get("id_horario"));
                 respuesta.put("alumnos", alumnos);
                 respuesta.put("ausentes", ausentes);
             }
-        }catch(SQLException error){
+        } catch (SQLException error) {
             error.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 
 }

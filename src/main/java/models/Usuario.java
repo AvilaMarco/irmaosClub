@@ -122,6 +122,7 @@ public class Usuario {
         result.put("fecha_registro", fecha_registro);
         result.put("fecha_nacimiento", nacimiento);
         result.put("activo", activo);
+        result.put("id_titular", idTitular);
         return result;
     }
 

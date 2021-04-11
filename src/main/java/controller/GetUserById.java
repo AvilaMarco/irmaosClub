@@ -20,11 +20,11 @@ public class GetUserById extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         int id_usuario = Integer.parseInt(request.getParameter("id"));
-        TablaUsuarios consultasUsuarios = new TablaUsuarios();
+        TablaUsuarios consultas = new TablaUsuarios();
         Gson gson = new Gson();
         Map<String, Object> result = new HashMap();
         try {
-            Usuario user = consultasUsuarios.getUser(id_usuario);
+            Usuario user = consultas.getUser(id_usuario);
             if (user != null) {
                 result = user.getInfo();
             } else {
@@ -36,5 +36,7 @@ public class GetUserById extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         out.print(gson.toJson(result));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

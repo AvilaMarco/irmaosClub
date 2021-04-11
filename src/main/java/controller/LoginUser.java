@@ -59,9 +59,11 @@ public class LoginUser extends HttpServlet {
                     response.sendRedirect("html/dashboard_instructor.html");
                     break;
                 default:
-                    response.sendRedirect("html/dashboard_admin.html");
+                    response.sendRedirect("html/jguXjo04aghX.html");
                     break;
             }
         }
+        consultas.cerrarConexion();
+        out.close();
     }
 }

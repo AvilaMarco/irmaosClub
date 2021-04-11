@@ -48,8 +48,8 @@ public class RegistroPago extends HttpServlet {
         try {
             id_menbresia_titular = consultasUsuarios.getMenbresia(id_usuario);
             for (Map<String, Object> actividad : actividades) {
-                int precio = (int) (double) actividad.get("unitPrice");
-                String nombreActividad = (String) actividad.get("title");
+                int precio = (int) (double) actividad.get("precio");
+                String nombreActividad = (String) actividad.get("nombre");
                 int id_menbresia = Integer.parseInt((String) actividad.get("id"));
                 consultasPagos.Pagar(id_menbresia_titular, id_menbresia, precio, nombreActividad);
             }

@@ -37,5 +37,7 @@ public class TomarAsistencia extends HttpServlet {
             error.printStackTrace();
         }
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 }

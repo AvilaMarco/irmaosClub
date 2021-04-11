@@ -29,6 +29,8 @@ public class UsuariosPorActividad extends HttpServlet {
         response.setContentType("application/json");
         PrintWriter out = response.getWriter();
         out.print(gson.toJson(respuesta));
+        consultas.cerrarConexion();
+        out.close();
     }
 
 }
