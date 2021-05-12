@@ -62,7 +62,10 @@ async function ActividadesHorarios(usuario) {
   );
   if (actividadBjj) {
     actividades = actividades.filter(
-      (e) => e.nombre == actividadBjj.nombre || e.nombre.indexOf("BJJ") == -1
+      (e) =>
+        e.nickname == "BJJ - Fisico" ||
+        e.nombre == actividadBjj.nombre ||
+        e.nombre.indexOf("BJJ") == -1
     );
   }
   clearInformacion();
@@ -79,6 +82,11 @@ async function ActividadesHorarios(usuario) {
   selectByRow();
   const tbody = document.getElementById("select-by-row");
   tbody.addEventListener("click", bloquearBjjRepetidos);
+  if (actividadBjj && actividadBjj.nickname != "BJJ - Infantil") {
+    document.getElementById("a-9").indeterminate = false;
+  } else {
+    document.getElementById("a-9").indeterminate = "true";
+  }
 }
 
 function bloquearBjjRepetidos(e) {
@@ -94,14 +102,27 @@ function bloquearBjjRepetidos(e) {
     inputsNoCheckedHTML.forEach((e) => {
       const element = JSON.parse(e.value);
       if (
+        element.nickname == "BJJ - Fisico" &&
+        bjjChecked.nickname != "BJJ - Infantil"
+      ) {
+        e.indeterminate = false;
+      } else if (
         element.nombre != bjjChecked.nombre &&
         element.nombre.indexOf("BJJ") >= 0
       ) {
         e.indeterminate = "true";
+        e.checked = false;
       }
     });
   } else {
-    inputsNoCheckedHTML.forEach((e) => (e.indeterminate = false));
+    inputsNoCheckedHTML.forEach((e) => {
+      if (JSON.parse(e.value).nickname != "BJJ - Fisico") {
+        e.indeterminate = false;
+      } else {
+        e.indeterminate = "true";
+        e.checked = false;
+      }
+    });
   }
 }
 

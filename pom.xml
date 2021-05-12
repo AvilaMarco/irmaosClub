@@ -4,7 +4,7 @@
 
     <groupId>IrmaosClub</groupId>
     <artifactId>IrmaosClub</artifactId>
-    <version>0.999</version>
+    <version>1.0.0</version>
     <packaging>war</packaging>
 
     <name>IrmaosClub</name>

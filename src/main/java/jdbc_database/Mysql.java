@@ -6,6 +6,7 @@ public class Mysql {
 //    private String url = "jdbc:mysql://localhost:3306/dbgym";
 //    private String user = "root";
 //    private String password = "password";
+//    private String password = "1234";
     private String url = "jdbc:mysql://localhost:3306/dbgym";
     private String user = "root";
     private String password = "password";

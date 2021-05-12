@@ -156,7 +156,8 @@ function createTableHTML(array, camposExtra = [], optionsExtra) {
             case "presente":
             case "actividad deseada":
               fila += `
-                <input type="checkbox" class="input-checkbox" 
+                <input type="checkbox" class="input-checkbox"
+                  ${e.id_actividad ? `id="a-${e.id_actividad}"` : ""}
                   value='${JSON.stringify(e)}' 
                   name="${campo}"
                 >`;
