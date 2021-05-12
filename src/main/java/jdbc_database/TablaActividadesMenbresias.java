@@ -277,7 +277,7 @@ public class TablaActividadesMenbresias implements DB {
         //fisico bjj
         for (int i = 0; i < actividadesConDescuento.size(); i++) {
             Map<String, Object> actividad = actividadesConDescuento.get(i);
-            if (actividad.get("nickname").equals("BJJ especial")) {
+            if (actividad.get("nickname").equals("BJJ - Fisico")) {
                 items.add(crearItem(actividad, descuento, id_menbresia));
                 actividadesConDescuento.remove(i);
             }
